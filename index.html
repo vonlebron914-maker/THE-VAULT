@@ -573,10 +573,19 @@ function buildGames(list) {
         .textContent =
         game.name;
 
+      /*
+        Send the approved game URL through
+        the backend proxy endpoint.
+      */
+
+      const proxyUrl =
+        "/proxy?url=" +
+        encodeURIComponent(game.url);
+
       document
         .getElementById("game-frame")
         .src =
-        game.url;
+        proxyUrl;
 
       document
         .getElementById("player")
