@@ -4,266 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>THE VAULT</title>
+<title>THE VAULT - Game Portal</title>
 
-<style>
+<link rel="stylesheet" href="styles.css">
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: #080808;
-  color: #e5e5e5;
-  font-family: Arial, sans-serif;
-}
-
-/* LOGIN */
-
-#login-screen {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #080808;
-  z-index: 10;
-}
-
-.login-box {
-  width: 320px;
-  text-align: center;
-}
-
-.login-box h1 {
-  margin-bottom: 8px;
-  font-size: 27px;
-  font-weight: 500;
-  letter-spacing: 2px;
-}
-
-.login-box h1 span {
-  color: #e3263e;
-}
-
-.login-box p {
-  margin-bottom: 25px;
-  color: #666;
-  font-size: 13px;
-}
-
-.login-box input {
-  width: 100%;
-  padding: 12px;
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 5px;
-  color: white;
-  outline: none;
-  text-align: center;
-}
-
-.login-box input:focus {
-  border-color: #e3263e;
-}
-
-.login-box button {
-  width: 100%;
-  margin-top: 10px;
-  padding: 12px;
-  border: none;
-  border-radius: 5px;
-  background: #e3263e;
-  color: white;
-  cursor: pointer;
-}
-
-.login-box button:hover {
-  background: #c91d34;
-}
-
-#error {
-  display: none;
-  margin-top: 12px;
-  color: #e3263e;
-  font-size: 12px;
-}
-
-/* MAIN */
-
-#site {
-  display: none;
-}
-
-header {
-  height: 65px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 35px;
-  border-bottom: 1px solid #171717;
-}
-
-.logo {
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
-.logo span {
-  color: #e3263e;
-}
-
-.status {
-  color: #555;
-  font-size: 12px;
-}
-
-.status span {
-  color: #36c978;
-}
-
-/* CONTENT */
-
-.container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 45px 30px;
-}
-
-.intro {
-  margin-bottom: 35px;
-}
-
-.intro h2 {
-  margin: 0 0 8px;
-  font-size: 24px;
-  font-weight: 500;
-}
-
-.intro p {
-  margin: 0;
-  color: #666;
-  font-size: 13px;
-}
-
-/* SEARCH */
-
-.search {
-  width: 100%;
-  margin-bottom: 25px;
-}
-
-.search input {
-  width: 100%;
-  padding: 13px 15px;
-  background: #0e0e0e;
-  border: 1px solid #1d1d1d;
-  border-radius: 5px;
-  color: white;
-  outline: none;
-}
-
-.search input:focus {
-  border-color: #333;
-}
-
-/* GRID */
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 10px;
-}
-
-.game-card {
-  padding: 18px;
-  background: #0d0d0d;
-  border: 1px solid #191919;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.game-card:hover {
-  border-color: #e3263e;
-  background: #111;
-}
-
-.game-number {
-  color: #444;
-  font-size: 11px;
-  margin-bottom: 13px;
-}
-
-.game-name {
-  font-size: 14px;
-  color: #ddd;
-}
-
-/* PLAYER */
-
-#player {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: #080808;
-  z-index: 20;
-}
-
-.player-header {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 25px;
-  border-bottom: 1px solid #1b1b1b;
-}
-
-.player-title {
-  font-size: 14px;
-}
-
-.close {
-  padding: 8px 14px;
-  background: #151515;
-  border: 1px solid #292929;
-  color: #aaa;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.close:hover {
-  color: white;
-  border-color: #e3263e;
-}
-
-iframe {
-  width: 100%;
-  height: calc(100vh - 60px);
-  border: none;
-}
-
-/* MOBILE */
-
-@media (max-width: 600px) {
-
-  header {
-    padding: 0 18px;
-  }
-
-  .container {
-    padding: 30px 18px;
-  }
-
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-}
-
-</style>
 </head>
 
 <body>
@@ -276,12 +20,12 @@ iframe {
 
     <h1>THE <span>VAULT</span></h1>
 
-    <p>Private game access</p>
+    <p>Your Ultimate Game Portal</p>
 
     <input
       id="password"
       type="password"
-      placeholder="Password"
+      placeholder="Enter Password"
       onkeydown="if(event.key === 'Enter') login()"
     >
 
@@ -308,8 +52,11 @@ iframe {
       THE <span>VAULT</span>
     </div>
 
-    <div class="status">
-      Status: <span>Online</span>
+    <div class="header-right">
+      <div class="status">
+        Status: <span>Online</span>
+      </div>
+      <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
   </header>
@@ -319,26 +66,40 @@ iframe {
 
     <div class="intro">
 
-      <h2>Games</h2>
+      <h2>🎮 Game Collection</h2>
 
       <p>
-        Select a game to launch it.
+        Select a game to launch. Over 100+ games available with Ultraviolet proxy support.
       </p>
 
     </div>
 
-
-    <div class="search">
-
-      <input
-        id="search"
-        type="text"
-        placeholder="Search games..."
-        oninput="searchGames()"
-      >
-
+    <div class="filters">
+      <div class="search">
+        <input
+          id="search"
+          type="text"
+          placeholder="🔍 Search games..."
+          oninput="searchGames()"
+        >
+      </div>
+      <div class="category-filter">
+        <select id="category" onchange="filterByCategory()">
+          <option value="all">All Categories</option>
+          <option value="action">Action</option>
+          <option value="puzzle">Puzzle</option>
+          <option value="strategy">Strategy</option>
+          <option value="sports">Sports</option>
+          <option value="casual">Casual</option>
+          <option value="multiplayer">Multiplayer</option>
+          <option value="retro">Retro</option>
+        </select>
+      </div>
     </div>
 
+    <div class="stats">
+      <span id="game-count">Loading games...</span>
+    </div>
 
     <div
       class="grid"
@@ -356,286 +117,40 @@ iframe {
 
   <div class="player-header">
 
-    <div
-      class="player-title"
-      id="player-title"
-    >
-      Game
+    <div class="player-info">
+      <div class="player-title" id="player-title">Game</div>
+      <span class="player-category" id="player-category"></span>
     </div>
 
-    <button
-      class="close"
-      onclick="closeGame()"
-    >
-      Close
-    </button>
+    <div class="player-controls">
+      <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+      <button
+        class="close"
+        onclick="closeGame()"
+      >
+        ✕ Close
+      </button>
+    </div>
 
   </div>
 
-  <iframe
-    id="game-frame"
-    allowfullscreen
-  ></iframe>
+  <div id="iframe-container">
+    <iframe
+      id="game-frame"
+      allowfullscreen
+      sandbox="allow-same-origin allow-scripts allow-popups allow-presentation"
+    ></iframe>
+  </div>
 
 </div>
 
-
-<script>
-
-const games = [
-
-  {
-    name: "Slope",
-    url: "https://slope-game.com/"
-  },
-
-  {
-    name: "Tunnel Rush",
-    url: "https://tunnelrushgame.com/"
-  },
-
-  {
-    name: "Run 3",
-    url: "https://run3.io/"
-  },
-
-  {
-    name: "Geometry Dash",
-    url: "https://geometrydashlite.io/"
-  },
-
-  {
-    name: "Crossy Road",
-    url: "https://crossyroadgame.com/"
-  },
-
-  {
-    name: "Flappy Bird",
-    url: "https://flappybird.io/"
-  },
-
-  {
-    name: "Chrome Dino",
-    url: "https://chromedino.com/"
-  },
-
-  {
-    name: "Cookie Clicker",
-    url: "https://cookieclicker.ee/"
-  },
-
-  {
-    name: "BitLife",
-    url: "https://bitlifegame.com/"
-  },
-
-  {
-    name: "Pac-Man",
-    url: "https://pacman.live/"
-  },
-
-  {
-    name: "Tetris",
-    url: "https://tetris.com/play-tetris"
-  },
-
-  {
-    name: "Snake",
-    url: "https://playsnake.org/"
-  },
-
-  {
-    name: "Drift Hunters",
-    url: "https://drifthunters.io/"
-  },
-
-  {
-    name: "Madalin Stunt Cars",
-    url: "https://madalinstuntcars2.com/"
-  },
-
-  {
-    name: "1v1.LOL",
-    url: "https://1v1.lol/"
-  },
-
-  {
-    name: "Shell Shockers",
-    url: "https://shellshock.io/"
-  },
-
-  {
-    name: "Krunker",
-    url: "https://krunker.io/"
-  },
-
-  {
-    name: "Paper.io",
-    url: "https://paper-io.com/"
-  },
-
-  {
-    name: "Hole.io",
-    url: "https://hole-io.com/"
-  },
-
-  {
-    name: "Slither.io",
-    url: "https://slither.io/"
-  },
-
-  {
-    name: "Agar.io",
-    url: "https://agar.io/"
-  },
-
-  {
-    name: "Zombs Royale",
-    url: "https://zombsroyale.io/"
-  },
-
-  {
-    name: "Moto X3M",
-    url: "https://www.google.com/search?q=Moto+X3M+game"
-  },
-
-  {
-    name: "Fireboy & Watergirl",
-    url: "https://www.google.com/search?q=Fireboy+and+Watergirl+game"
-  },
-
-  {
-    name: "Stickman Hook",
-    url: "https://www.google.com/search?q=Stickman+Hook+game"
-  }
-
-];
-
-
-function login() {
-
-  const password =
-    document.getElementById("password").value;
-
-  if (password === "bannana13!") {
-
-    document
-      .getElementById("login-screen")
-      .style.display = "none";
-
-    document
-      .getElementById("site")
-      .style.display = "block";
-
-    buildGames(games);
-
-  } else {
-
-    document
-      .getElementById("error")
-      .style.display = "block";
-
-  }
-
-}
-
-
-function buildGames(list) {
-
-  const container =
-    document.getElementById("games");
-
-  container.innerHTML = "";
-
-  list.forEach((game, index) => {
-
-    const card =
-      document.createElement("div");
-
-    card.className = "game-card";
-
-    card.innerHTML = `
-
-      <div class="game-number">
-        ${String(index + 1).padStart(2, "0")}
-      </div>
-
-      <div class="game-name">
-        ${game.name}
-      </div>
-
-    `;
-
-    card.onclick = () => {
-
-      document
-        .getElementById("player-title")
-        .textContent =
-        game.name;
-
-      /*
-        Send the approved game URL through
-        the backend proxy endpoint.
-      */
-
-      const proxyUrl =
-        "/proxy?url=" +
-        encodeURIComponent(game.url);
-
-      document
-        .getElementById("game-frame")
-        .src =
-        proxyUrl;
-
-      document
-        .getElementById("player")
-        .style.display =
-        "block";
-
-    };
-
-    container.appendChild(card);
-
-  });
-
-}
-
-
-function searchGames() {
-
-  const query =
-    document
-      .getElementById("search")
-      .value
-      .toLowerCase();
-
-  const filtered =
-    games.filter(game =>
-      game.name
-        .toLowerCase()
-        .includes(query)
-    );
-
-  buildGames(filtered);
-
-}
-
-
-function closeGame() {
-
-  document
-    .getElementById("game-frame")
-    .src =
-    "";
-
-  document
-    .getElementById("player")
-    .style.display =
-    "none";
-
-}
-
-</script>
+<!-- LOADING INDICATOR -->
+<div id="loading" class="loading-indicator">
+  <div class="spinner"></div>
+  <p>Loading game...</p>
+</div>
+
+<script src="script.js"></script>
 
 </body>
 </html>
