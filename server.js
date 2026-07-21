@@ -47,7 +47,8 @@ const allowedDomains = [
   "bob-robber.io",
   "chess.io",
   "checkers.io",
-  "2048game.io"
+  "2048game.io",
+  "stickman-hook.io"
 ];
 
 // CORS Proxy Endpoint
@@ -191,11 +192,11 @@ function rewriteHtmlUrls(html, origin, targetUrl) {
 
 // Rewrite CSS URLs
 function rewriteCssUrls(css, origin) {
-  return css.replace(/url\(['"]?(?!data:)([^'")\s]+)['"]?\)/g, (match, url) => {
+  return css.replace(/url\(['"]?(?!data:)([^'"\)\s]+)['"]?\)/g, (match, url) => {
     if (!url.startsWith('http')) {
       url = new URL(url, origin).href;
     }
-    return `url('${url}')`;
+    return `url('${url}')` ;
   });
 }
 
@@ -204,8 +205,7 @@ function rewriteJavaScript(js, origin) {
   // This is a basic approach; a full implementation would need proper JS parsing
   return js
     .replace(/fetch\s*\(\s*['"`]/g, (match) => {
-      return match.replace(/(['"`])/g, (q) => q + `/proxy?url=${encodeURIComponent(`);
-    });
+      return match.replace(/(['"`])/g, (q) => q + `/proxy?url=${encodeURIComponent(`);\n    });
 }
 
 // Inject proxy helper script
@@ -235,15 +235,6 @@ function injectProxyScript(html, origin) {
           url = '/proxy?url=' + encodeURIComponent(url);
         }
         return originalOpen.apply(this, [method, url, ...rest]);
-      };
-
-      // Fix relative URLs in WebSocket
-      const originalWebSocket = window.WebSocket;
-      window.WebSocket = function(url, ...rest) {
-        if (!url.startsWith('ws')) {
-          url = 'ws' + (window.location.protocol === 'https:' ? 's' : '') + '://' + window.location.host + '/proxy?url=' + encodeURIComponent(url);
-        }
-        return new originalWebSocket(url, ...rest);
       };
 
       // Override base tag if it exists
