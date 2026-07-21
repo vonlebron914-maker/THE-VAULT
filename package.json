@@ -1,0 +1,12 @@
+{
+  "name": "the-vault",
+  "version": "1.0.0",
+  "description": "The Vault game hub",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
