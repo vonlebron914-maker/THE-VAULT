@@ -190,14 +190,14 @@ function fixCorsIssues(html) {
 }
 
 function rewriteCssUrls(css, origin, targetUrl) {
-  return css.replace(/url\\(['\"]?(?!data:)([^'\"\\)\\s]+)['\"]?\\)/g, (match, urlStr) => {
+  return css.replace(/url\(['\"]?(?!data:)([^'\"\)\s]+)['\"]?\)/g, (match, urlStr) => {
     const resolved = resolveUrl(urlStr, targetUrl);
     return `url('${resolved}')`;
   });
 }
 
 function rewriteJavaScript(js, origin, targetUrl) {
-  js = js.replace(/fetch\\(['\"`]([^'\"`)]+)['\"`]/g, (match, fetchUrl) => {
+  js = js.replace(/fetch\(['\"`]([^'\"`)]+)['\"\`]/g, (match, fetchUrl) => {
     if (!fetchUrl.startsWith('/proxy') && !fetchUrl.startsWith('data:')) {
       const resolved = resolveUrl(fetchUrl, targetUrl);
       return `fetch('/proxy?url=${encodeURIComponent(resolved)}'`;
@@ -205,7 +205,7 @@ function rewriteJavaScript(js, origin, targetUrl) {
     return match;
   });
 
-  js = js.replace(/\\.open\\(['\"`]([A-Z]+)['\"`],\\s*['\"`]([^'\"`)]+)['\"`]/g, (match, method, xhrUrl) => {
+  js = js.replace(/\.open\(['\"`]([A-Z]+)['\"\`],\s*['\"`]([^'\"`)]+)['\"\`]/g, (match, method, xhrUrl) => {
     if (!xhrUrl.startsWith('/proxy') && !xhrUrl.startsWith('data:')) {
       const resolved = resolveUrl(xhrUrl, targetUrl);
       return `.open('${method}', '/proxy?url=${encodeURIComponent(resolved)}'`;
