@@ -1,57 +1,57 @@
 const games = [
   // ACTION GAMES
-  { name: "Shell Shockers", url: "shellshockers.io", category: "action", tags: ["multiplayer", "shooter"] },
-  { name: "Krunker", url: "krunker.io", category: "action", tags: ["multiplayer", "shooter", "fps"] },
-  { name: "Slope", url: "slope-game.com", category: "action", tags: ["endless", "arcade"] },
-  { name: "Tunnel Rush", url: "tunnelrushgame.com", category: "action", tags: ["endless", "arcade"] },
-  { name: "Madalin Stunt Cars", url: "madalinstuntcars2.com", category: "action", tags: ["racing", "stunts"] },
-  { name: "Drift Hunters", url: "drifthunters.io", category: "action", tags: ["racing", "drifting"] },
-  { name: "1v1.LOL", url: "1v1.lol", category: "action", tags: ["multiplayer", "shooter", "building"] },
-  { name: "Moto X3M", url: "motox3m.io", category: "action", tags: ["racing", "bikes", "stunts"] },
+  { name: "Shell Shockers", url: "https://shellshockers.io", category: "action", tags: ["multiplayer", "shooter"] },
+  { name: "Krunker", url: "https://krunker.io", category: "action", tags: ["multiplayer", "shooter", "fps"] },
+  { name: "Slope", url: "https://slope-game.com", category: "action", tags: ["endless", "arcade"] },
+  { name: "Tunnel Rush", url: "https://tunnelrushgame.com", category: "action", tags: ["endless", "arcade"] },
+  { name: "Madalin Stunt Cars", url: "https://madalinstuntcars2.com", category: "action", tags: ["racing", "stunts"] },
+  { name: "Drift Hunters", url: "https://drifthunters.io", category: "action", tags: ["racing", "drifting"] },
+  { name: "1v1.LOL", url: "https://1v1.lol", category: "action", tags: ["multiplayer", "shooter", "building"] },
+  { name: "Moto X3M", url: "https://motox3m.io", category: "action", tags: ["racing", "bikes", "stunts"] },
 
   // PUZZLE GAMES
-  { name: "Geometry Dash", url: "geometrydashlite.io", category: "puzzle", tags: ["rhythm", "platformer"] },
-  { name: "Tetris", url: "tetris.com/play-tetris", category: "puzzle", tags: ["classic", "blocks"] },
-  { name: "Run 3", url: "run3.io", category: "puzzle", tags: ["platformer", "endless"] },
-  { name: "Fireboy & Watergirl", url: "fireboy-watergirl.io", category: "puzzle", tags: ["platformer", "coop"] },
-  { name: "Portal Flash", url: "portalflash.io", category: "puzzle", tags: ["physics", "platformer"] },
+  { name: "Geometry Dash", url: "https://geometrydashlite.io", category: "puzzle", tags: ["rhythm", "platformer"] },
+  { name: "Tetris", url: "https://tetris.com/play-tetris", category: "puzzle", tags: ["classic", "blocks"] },
+  { name: "Run 3", url: "https://run3.io", category: "puzzle", tags: ["platformer", "endless"] },
+  { name: "Fireboy & Watergirl", url: "https://fireboy-watergirl.io", category: "puzzle", tags: ["platformer", "coop"] },
+  { name: "Portal Flash", url: "https://portalflash.io", category: "puzzle", tags: ["physics", "platformer"] },
 
   // STRATEGY GAMES
-  { name: "Zombs Royale", url: "zombsroyale.io", category: "strategy", tags: ["battle-royale", "multiplayer"] },
-  { name: "Agar.io", url: "agar.io", category: "strategy", tags: ["multiplayer", "survival"] },
-  { name: "Slither.io", url: "slither.io", category: "strategy", tags: ["multiplayer", "snake"] },
-  { name: "Paper.io", url: "paper-io.com", category: "strategy", tags: ["multiplayer", "territorial"] },
-  { name: "Hole.io", url: "hole-io.com", category: "strategy", tags: ["multiplayer", "arcade"] },
+  { name: "Zombs Royale", url: "https://zombsroyale.io", category: "strategy", tags: ["battle-royale", "multiplayer"] },
+  { name: "Agar.io", url: "https://agar.io", category: "strategy", tags: ["multiplayer", "survival"] },
+  { name: "Slither.io", url: "https://slither.io", category: "strategy", tags: ["multiplayer", "snake"] },
+  { name: "Paper.io", url: "https://paper-io.com", category: "strategy", tags: ["multiplayer", "territorial"] },
+  { name: "Hole.io", url: "https://hole-io.com", category: "strategy", tags: ["multiplayer", "arcade"] },
 
   // CASUAL GAMES
-  { name: "Flappy Bird", url: "flappybird.io", category: "casual", tags: ["classic", "arcade"] },
-  { name: "Chrome Dino", url: "chromedino.com", category: "casual", tags: ["endless", "arcade"] },
-  { name: "Cookie Clicker", url: "cookieclicker.ee", category: "casual", tags: ["idle", "clicker"] },
-  { name: "Snake", url: "playsnake.org", category: "casual", tags: ["classic", "arcade"] },
-  { name: "Crossy Road", url: "crossyroadgame.com", category: "casual", tags: ["platformer", "arcade"] },
+  { name: "Flappy Bird", url: "https://flappybird.io", category: "casual", tags: ["classic", "arcade"] },
+  { name: "Chrome Dino", url: "https://chromedino.com", category: "casual", tags: ["endless", "arcade"] },
+  { name: "Cookie Clicker", url: "https://cookieclicker.ee", category: "casual", tags: ["idle", "clicker"] },
+  { name: "Snake", url: "https://playsnake.org", category: "casual", tags: ["classic", "arcade"] },
+  { name: "Crossy Road", url: "https://crossyroadgame.com", category: "casual", tags: ["platformer", "arcade"] },
 
   // MULTIPLAYER GAMES
-  { name: "Pac-Man", url: "pacman.live", category: "multiplayer", tags: ["classic", "arcade"] },
-  { name: "BitLife", url: "bitlifegame.com", category: "multiplayer", tags: ["simulation", "life"] },
-  { name: "Stickman Hook", url: "stickman-hook.io", category: "casual", tags: ["platformer", "physics"] },
-  { name: "Basketball Legends", url: "basketball-legends.io", category: "sports", tags: ["sports", "multiplayer"] },
-  { name: "Dino Runner", url: "dinorunner.io", category: "casual", tags: ["endless", "arcade"] },
+  { name: "Pac-Man", url: "https://pacman.live", category: "multiplayer", tags: ["classic", "arcade"] },
+  { name: "BitLife", url: "https://bitlifegame.com", category: "multiplayer", tags: ["simulation", "life"] },
+  { name: "Stickman Hook", url: "https://stickman-hook.io", category: "casual", tags: ["platformer", "physics"] },
+  { name: "Basketball Legends", url: "https://basketball-legends.io", category: "sports", tags: ["sports", "multiplayer"] },
+  { name: "Dino Runner", url: "https://dinorunner.io", category: "casual", tags: ["endless", "arcade"] },
 
   // RETRO GAMES
-  { name: "Super Mario", url: "supermario.io", category: "retro", tags: ["classic", "platformer"] },
-  { name: "Space Invaders", url: "spaceinvaders.io", category: "retro", tags: ["classic", "shooter"] },
-  { name: "Pac-Man Battle", url: "pacman-battle.io", category: "retro", tags: ["classic", "multiplayer"] },
+  { name: "Super Mario", url: "https://supermario.io", category: "retro", tags: ["classic", "platformer"] },
+  { name: "Space Invaders", url: "https://spaceinvaders.io", category: "retro", tags: ["classic", "shooter"] },
+  { name: "Pac-Man Battle", url: "https://pacman-battle.io", category: "retro", tags: ["classic", "multiplayer"] },
 
   // SPORTS GAMES
-  { name: "Penalty Kicks", url: "penalty-kicks.io", category: "sports", tags: ["sports", "soccer"] },
-  { name: "Baseball Star", url: "baseball-star.io", category: "sports", tags: ["sports", "baseball"] },
-  { name: "Ice Hockey", url: "ice-hockey.io", category: "sports", tags: ["sports", "hockey"] },
+  { name: "Penalty Kicks", url: "https://penalty-kicks.io", category: "sports", tags: ["sports", "soccer"] },
+  { name: "Baseball Star", url: "https://baseball-star.io", category: "sports", tags: ["sports", "baseball"] },
+  { name: "Ice Hockey", url: "https://ice-hockey.io", category: "sports", tags: ["sports", "hockey"] },
 
   // ADDITIONAL GAMES
-  { name: "Bob the Robber", url: "bob-robber.io", category: "action", tags: ["stealth", "puzzle"] },
-  { name: "Chess", url: "chess.io", category: "strategy", tags: ["board", "classic"] },
-  { name: "Checkers", url: "checkers.io", category: "strategy", tags: ["board", "classic"] },
-  { name: "2048", url: "2048game.io", category: "puzzle", tags: ["puzzle", "numbers"] },
+  { name: "Bob the Robber", url: "https://bob-robber.io", category: "action", tags: ["stealth", "puzzle"] },
+  { name: "Chess", url: "https://chess.io", category: "strategy", tags: ["board", "classic"] },
+  { name: "Checkers", url: "https://checkers.io", category: "strategy", tags: ["board", "classic"] },
+  { name: "2048", url: "https://2048game.io", category: "puzzle", tags: ["puzzle", "numbers"] },
 ];
 
 let allGames = [...games];
@@ -135,14 +135,17 @@ function playGame(event, gameData) {
   document.getElementById("player-title").textContent = game.name;
   document.getElementById("player-category").textContent = game.category.toUpperCase();
 
-  // Use Ultraviolet proxy
-  const proxyUrl = "/uv/service/" + encodeURIComponent("https://" + game.url);
+  // Use CORS proxy endpoint
+  const proxyUrl = `/proxy?url=${encodeURIComponent(game.url)}`;
 
   showLoadingIndicator();
 
   const iframe = document.getElementById("game-frame");
   iframe.onload = () => hideLoadingIndicator();
-  iframe.onerror = () => hideLoadingIndicator();
+  iframe.onerror = () => {
+    hideLoadingIndicator();
+    console.error("Game failed to load");
+  };
 
   iframe.src = proxyUrl;
   document.getElementById("player").style.display = "block";
