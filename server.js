@@ -7,10 +7,11 @@ const cheerio = require("cheerio");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files
 app.use(express.static(__dirname));
+app.use(express.urlencoded({ limit: '50mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.raw({ limit: '50mb' }));
 
-// Approved game domains
 const allowedDomains = [
   "shellshockers.io", "krunker.io", "slope-game.com", "tunnelrushgame.com",
   "geometrydashlite.io", "crossyroadgame.com", "flappybird.io", "chromedino.com",
@@ -23,12 +24,11 @@ const allowedDomains = [
   "bob-robber.io", "chess.io", "checkers.io", "2048game.io", "stickman-hook.io"
 ];
 
-// Resource cache
 const resourceCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000;
 
-// Main proxy endpoint
-app.get("/proxy", async (req, res) => {
+// Handle all HTTP methods
+app.all("/proxy", async (req, res) => {
   try {
     const targetUrl = req.query.url;
     if (!targetUrl) return res.status(400).json({ error: "Missing URL" });
@@ -39,8 +39,8 @@ app.get("/proxy", async (req, res) => {
     );
     if (!isAllowed) return res.status(403).json({ error: "Domain blocked" });
 
-    // Check cache
-    if (resourceCache.has(targetUrl)) {
+    // Check cache for GET requests only
+    if (req.method === 'GET' && resourceCache.has(targetUrl)) {
       const cached = resourceCache.get(targetUrl);
       if (Date.now() - cached.timestamp < CACHE_TTL) {
         res.set(cached.headers);
@@ -48,21 +48,38 @@ app.get("/proxy", async (req, res) => {
       }
     }
 
-    // Fetch with advanced headers
+    // Prepare headers
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+      'Accept': '*/*',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Referer': targetUrl,
+      'Origin': `https://${parsedUrl.hostname}`,
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': req.method === 'GET' ? 'navigate' : 'cors',
+      'Sec-Fetch-Site': 'none',
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    };
+
+    // Add body for POST requests
+    let body = null;
+    if (req.method !== 'GET') {
+      if (req.body instanceof Buffer) {
+        body = req.body;
+      } else if (typeof req.body === 'object' && req.body !== null) {
+        body = new URLSearchParams(req.body).toString();
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      } else {
+        body = req.body;
+      }
+    }
+
     const response = await fetch(targetUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-        'Accept': '*/*',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Referer': targetUrl,
-        'Origin': `https://${parsedUrl.hostname}`,
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      },
+      method: req.method,
+      headers,
+      body,
       redirect: 'follow',
       timeout: 30000
     });
@@ -71,7 +88,6 @@ app.get("/proxy", async (req, res) => {
 
     const contentType = response.headers.get("content-type") || "";
     
-    // Set aggressive CORS headers
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
     res.header('Access-Control-Allow-Headers', '*');
@@ -81,7 +97,6 @@ app.get("/proxy", async (req, res) => {
     res.header('X-Content-Type-Options', 'nosniff');
     res.header('Content-Security-Policy', "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline';");
 
-    // Handle content types
     if (contentType.includes("text/html")) {
       let html = await response.text();
       html = rewriteHtmlUrls(html, parsedUrl.origin, targetUrl);
@@ -89,11 +104,13 @@ app.get("/proxy", async (req, res) => {
       html = fixCorsIssues(html);
       
       res.set("Content-Type", "text/html; charset=utf-8");
-      resourceCache.set(targetUrl, {
-        data: html,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-        timestamp: Date.now()
-      });
+      if (req.method === 'GET') {
+        resourceCache.set(targetUrl, {
+          data: html,
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+          timestamp: Date.now()
+        });
+      }
       res.send(html);
     } else if (contentType.includes("javascript")) {
       let js = await response.text();
@@ -111,11 +128,13 @@ app.get("/proxy", async (req, res) => {
     } else {
       const buffer = await response.buffer();
       res.set("Content-Type", contentType);
-      resourceCache.set(targetUrl, {
-        data: buffer,
-        headers: { 'Content-Type': contentType },
-        timestamp: Date.now()
-      });
+      if (req.method === 'GET') {
+        resourceCache.set(targetUrl, {
+          data: buffer,
+          headers: { 'Content-Type': contentType },
+          timestamp: Date.now()
+        });
+      }
       res.send(buffer);
     }
   } catch (error) {
@@ -124,7 +143,6 @@ app.get("/proxy", async (req, res) => {
   }
 });
 
-// CORS preflight
 app.options('*', (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
@@ -134,7 +152,6 @@ app.options('*', (req, res) => {
   res.sendStatus(200);
 });
 
-// Helper functions
 function rewriteHtmlUrls(html, origin, targetUrl) {
   const $ = cheerio.load(html, { decodeEntities: false });
   
@@ -175,6 +192,14 @@ function rewriteHtmlUrls(html, origin, targetUrl) {
     if (action && !action.startsWith('data:')) {
       action = resolveUrl(action, targetUrl);
       $(el).attr('action', `/proxy?url=${encodeURIComponent(action)}`);
+    }
+  });
+
+  $('a[href]').each((i, el) => {
+    let href = $(el).attr('href');
+    if (href && !href.startsWith('#') && !href.startsWith('javascript:') && !href.startsWith('data:')) {
+      href = resolveUrl(href, targetUrl);
+      $(el).attr('href', `/proxy?url=${encodeURIComponent(href)}`);
     }
   });
 
@@ -238,6 +263,8 @@ function injectAdvancedProxyScript(html, targetUrl) {
       const origFetch = window.fetch;
       window.fetch = function(...args) {
         let url = args[0];
+        let options = args[1] || {};
+        
         if (typeof url === 'string' && !url.startsWith('/proxy')) {
           if (!url.startsWith('http')) url = new URL(url, window.PROXY_URL).href;
           args[0] = '/proxy?url=' + encodeURIComponent(url);
@@ -255,6 +282,16 @@ function injectAdvancedProxyScript(html, targetUrl) {
         return origOpen.apply(this, [method, url, ...rest]);
       };
 
+      // Intercept form submissions
+      const origFormSubmit = HTMLFormElement.prototype.submit;
+      HTMLFormElement.prototype.submit = function() {
+        if (this.action && !this.action.startsWith('/proxy')) {
+          const resolvedAction = new URL(this.action, window.PROXY_URL).href;
+          this.action = '/proxy?url=' + encodeURIComponent(resolvedAction);
+        }
+        return origFormSubmit.apply(this);
+      };
+
       // Intercept WebSocket
       const origWS = window.WebSocket;
       window.WebSocket = function(url, ...rest) {
@@ -265,13 +302,37 @@ function injectAdvancedProxyScript(html, targetUrl) {
         return new origWS(url, ...rest);
       };
 
+      // Intercept window.location changes
+      let isNavigating = false;
+      const handleNavigation = (newUrl) => {
+        if (!newUrl.startsWith('/proxy') && !isNavigating) {
+          isNavigating = true;
+          const resolvedUrl = newUrl.startsWith('http') ? newUrl : new URL(newUrl, window.PROXY_URL).href;
+          window.location = '/proxy?url=' + encodeURIComponent(resolvedUrl);
+        }
+      };
+
+      Object.defineProperty(window.location, 'href', {
+        set: handleNavigation,
+        get: function() { return window.location.toString(); }
+      });
+
+      // Intercept link clicks
+      document.addEventListener('click', function(e) {
+        const link = e.target.closest('a[href]');
+        if (link && link.href && !link.href.startsWith('javascript:') && !link.href.startsWith('#')) {
+          e.preventDefault();
+          const resolvedUrl = new URL(link.href, window.PROXY_URL).href;
+          window.location = '/proxy?url=' + encodeURIComponent(resolvedUrl);
+        }
+      }, true);
+
       // Fix document.domain
       try {
         const domain = new URL(window.PROXY_URL).hostname;
         document.domain = domain;
       } catch (e) {}
 
-      // Disable security checks
       window.eval = eval;
 
       // Service Worker support
@@ -320,7 +381,6 @@ app.get("/", (req, res) => {
 
 const server = createServer(app);
 
-// WebSocket proxy
 const wss = new WebSocketServer({ server, path: '/ws' });
 wss.on('connection', (ws, req) => {
   const queryUrl = req.url.split('?url=')[1];
@@ -366,11 +426,11 @@ app.use((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`🎮 THE VAULT v3.0 - ULTIMATE PROXY`);
+  console.log(`🎮 THE VAULT v3.1 - BUTTON FIX`);
   console.log(`📝 Password: bannana13!`);
-  console.log(`✅ WebSocket support enabled`);
-  console.log(`✅ Service Worker support enabled`);
-  console.log(`✅ Advanced request interception`);
+  console.log(`✅ POST/PUT/DELETE methods supported`);
+  console.log(`✅ Link clicks now work`);
+  console.log(`✅ Form submissions work`);
   console.log(`🚀 Running on http://localhost:${PORT}`);
-  console.log(`🔥 ALL GAMES WILL WORK 100%`);
+  console.log(`🔥 BUTTONS AND NAVIGATION FIXED`);
 });
