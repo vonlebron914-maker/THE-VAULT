@@ -57,178 +57,327 @@ const games = [
 let allGames = [...games];
 let currentCategory = "all";
 
+
+// LOGIN
 function login() {
   const password = document.getElementById("password").value;
 
   if (password === "bannana13!") {
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("site").style.display = "block";
+
     buildGames(allGames);
   } else {
     const errorDiv = document.getElementById("error");
+
     errorDiv.style.display = "block";
+
     setTimeout(() => {
       errorDiv.style.display = "none";
     }, 3000);
   }
 }
 
+
+// LOGOUT
 function logout() {
   document.getElementById("login-screen").style.display = "flex";
   document.getElementById("site").style.display = "none";
   document.getElementById("player").style.display = "none";
+
   document.getElementById("password").value = "";
 }
 
+
+// BUILD GAME CARDS
 function buildGames(list) {
   const container = document.getElementById("games");
+
   container.innerHTML = "";
 
-  document.getElementById("game-count").textContent = `${list.length} games available`;
+  document.getElementById("game-count").textContent =
+    `${list.length} games available`;
 
   if (list.length === 0) {
-    container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #aaa; padding: 40px;">No games found</div>';
+    container.innerHTML =
+      '<div style="grid-column: 1/-1; text-align: center; color: #aaa; padding: 40px;">No games found</div>';
+
     return;
   }
 
   list.forEach((game, index) => {
     const card = document.createElement("div");
+
     card.className = "game-card";
 
-    const categoryBadge = game.category.charAt(0).toUpperCase() + game.category.slice(1);
+    const categoryBadge =
+      game.category.charAt(0).toUpperCase() +
+      game.category.slice(1);
 
     card.innerHTML = `
       <div class="game-card-header">
-        <div class="game-number">#${String(index + 1).padStart(2, "0")}</div>
-        <div class="game-name">${game.name}</div>
-        <span class="game-category">${categoryBadge}</span>
+        <div class="game-number">
+          #${String(index + 1).padStart(2, "0")}
+        </div>
+
+        <div class="game-name">
+          ${game.name}
+        </div>
+
+        <span class="game-category">
+          ${categoryBadge}
+        </span>
       </div>
+
       <div class="game-card-footer">
-        <span style="font-size: 11px; color: #888;">${game.tags.join(", ")}</span>
-        <button class="play-btn" onclick="playGame(event)">PLAY</button>
+        <span style="font-size: 11px; color: #888;">
+          ${game.tags.join(", ")}
+        </span>
+
+        <button class="play-btn" type="button">
+          PLAY
+        </button>
       </div>
     `;
 
-    card.onclick = (e) => {
-      if (!e.target.classList.contains("play-btn")) {
-        playGame(e, game);
-      }
-    };
+    // PLAY BUTTON
+    const playButton = card.querySelector(".play-btn");
 
-    card.dataset.gameName = game.name;
-    card.dataset.gameUrl = game.url;
-    card.dataset.gameCategory = game.category;
+    playButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+
+      playGame(game);
+    });
+
+
+    // CLICKING THE CARD
+    card.addEventListener("click", () => {
+      playGame(game);
+    });
+
 
     container.appendChild(card);
   });
 }
 
-function playGame(event, gameData) {
-  const game = gameData || {
-    name: event.currentTarget?.dataset.gameName,
-    url: event.currentTarget?.dataset.gameUrl,
-    category: event.currentTarget?.dataset.gameCategory,
-  };
 
-  if (!game.url) return;
+// PLAY GAME
+function playGame(game) {
+  if (!game || !game.url) {
+    console.error("Game URL is missing");
 
-  document.getElementById("player-title").textContent = game.name;
-  document.getElementById("player-category").textContent = game.category.toUpperCase();
+    return;
+  }
 
-  // Use CORS proxy endpoint
-  const proxyUrl = `/proxy?url=${encodeURIComponent(game.url)}`;
+  const playerTitle =
+    document.getElementById("player-title");
+
+  const playerCategory =
+    document.getElementById("player-category");
+
+  const player =
+    document.getElementById("player");
+
+  const iframe =
+    document.getElementById("game-frame");
+
+
+  playerTitle.textContent = game.name;
+
+  playerCategory.textContent =
+    game.category.toUpperCase();
+
+
+  // Proxy URL
+  const proxyUrl =
+    `/proxy?url=${encodeURIComponent(game.url)}`;
+
 
   showLoadingIndicator();
 
-  const iframe = document.getElementById("game-frame");
-  iframe.onload = () => hideLoadingIndicator();
+
+  iframe.onload = () => {
+    hideLoadingIndicator();
+  };
+
+
   iframe.onerror = () => {
     hideLoadingIndicator();
+
     console.error("Game failed to load");
   };
 
-  iframe.src = proxyUrl;
-  document.getElementById("player").style.display = "block";
 
+  iframe.src = proxyUrl;
+
+  player.style.display = "block";
+
+
+  // Hide loading screen after 5 seconds
   setTimeout(() => {
-    if (iframe.style.display !== "none") {
-      hideLoadingIndicator();
-    }
+    hideLoadingIndicator();
   }, 5000);
 }
 
+
+// CLOSE GAME
 function closeGame() {
-  document.getElementById("game-frame").src = "";
-  document.getElementById("player").style.display = "none";
+  const iframe =
+    document.getElementById("game-frame");
+
+  const player =
+    document.getElementById("player");
+
+
+  iframe.src = "";
+
+  player.style.display = "none";
+
   hideLoadingIndicator();
 }
 
+
+// FULLSCREEN
 function toggleFullscreen() {
-  const iframe = document.getElementById("game-frame");
-  const container = document.getElementById("iframe-container");
-  const player = document.getElementById("player");
+  const iframe =
+    document.getElementById("game-frame");
+
+  const container =
+    document.getElementById("iframe-container");
+
+  const player =
+    document.getElementById("player");
+
 
   if (iframe.classList.contains("fullscreen")) {
+
     iframe.classList.remove("fullscreen");
+
     player.style.position = "fixed";
-    container.style.height = "calc(100vh - 70px)";
+
+    player.style.inset = "";
+
+    container.style.height =
+      "calc(100vh - 70px)";
+
   } else {
+
     iframe.classList.add("fullscreen");
+
     player.style.position = "fixed";
+
     player.style.inset = "0";
   }
 }
 
+
+// SEARCH GAMES
 function searchGames() {
-  const query = document.getElementById("search").value.toLowerCase();
+  const query =
+    document.getElementById("search").value.toLowerCase();
 
-  const filtered = allGames.filter((game) => {
-    const matchesName = game.name.toLowerCase().includes(query);
-    const matchesTags = game.tags.some((tag) => tag.toLowerCase().includes(query));
-    return matchesName || matchesTags;
-  });
 
-  if (currentCategory !== "all") {
-    const filtered2 = filtered.filter((game) => game.category === currentCategory);
-    buildGames(filtered2);
-  } else {
-    buildGames(filtered);
-  }
-}
+  let filtered =
+    allGames.filter((game) => {
 
-function filterByCategory() {
-  currentCategory = document.getElementById("category").value;
-  const query = document.getElementById("search").value.toLowerCase();
+      const matchesName =
+        game.name.toLowerCase().includes(query);
 
-  let filtered = allGames;
+      const matchesTags =
+        game.tags.some((tag) =>
+          tag.toLowerCase().includes(query)
+        );
 
-  if (currentCategory !== "all") {
-    filtered = allGames.filter((game) => game.category === currentCategory);
-  }
 
-  if (query) {
-    filtered = filtered.filter((game) => {
-      const matchesName = game.name.toLowerCase().includes(query);
-      const matchesTags = game.tags.some((tag) => tag.toLowerCase().includes(query));
       return matchesName || matchesTags;
     });
+
+
+  if (currentCategory !== "all") {
+
+    filtered =
+      filtered.filter(
+        (game) =>
+          game.category === currentCategory
+      );
   }
+
 
   buildGames(filtered);
 }
 
-function showLoadingIndicator() {
-  document.getElementById("loading").classList.add("show");
+
+// FILTER BY CATEGORY
+function filterByCategory() {
+  currentCategory =
+    document.getElementById("category").value;
+
+
+  const query =
+    document.getElementById("search").value.toLowerCase();
+
+
+  let filtered = allGames;
+
+
+  if (currentCategory !== "all") {
+
+    filtered =
+      allGames.filter(
+        (game) =>
+          game.category === currentCategory
+      );
+  }
+
+
+  if (query) {
+
+    filtered =
+      filtered.filter((game) => {
+
+        const matchesName =
+          game.name.toLowerCase().includes(query);
+
+        const matchesTags =
+          game.tags.some((tag) =>
+            tag.toLowerCase().includes(query)
+          );
+
+
+        return matchesName || matchesTags;
+      });
+  }
+
+
+  buildGames(filtered);
 }
+
+
+// LOADING INDICATOR
+function showLoadingIndicator() {
+  document
+    .getElementById("loading")
+    .classList.add("show");
+}
+
 
 function hideLoadingIndicator() {
-  document.getElementById("loading").classList.remove("show");
+  document
+    .getElementById("loading")
+    .classList.remove("show");
 }
 
-// Keyboard shortcuts
+
+// KEYBOARD SHORTCUTS
 document.addEventListener("keydown", (e) => {
+
   if (e.key === "Escape") {
-    if (document.getElementById("player").style.display === "block") {
+
+    const player =
+      document.getElementById("player");
+
+
+    if (player.style.display === "block") {
       closeGame();
     }
   }
