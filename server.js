@@ -1,8 +1,7 @@
 const express = require("express");
 const path = require("path");
 const { createServer } = require("http");
-const { exec } = require("child_process");
-const fs = require("fs");
+const cheerio = require("cheerio");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,10 +50,15 @@ const allowedDomains = [
   "2048game.io"
 ];
 
-// Ultraviolet Proxy Endpoint
-app.get("/uv/service/:url", async (req, res) => {
+// CORS Proxy Endpoint
+app.get("/proxy", async (req, res) => {
   try {
-    const targetUrl = Buffer.from(decodeURIComponent(req.params.url), 'base64').toString('utf-8');
+    const targetUrl = req.query.url;
+
+    if (!targetUrl) {
+      return res.status(400).json({ error: "Missing URL parameter" });
+    }
+
     const url = new URL(targetUrl);
 
     // Validate domain
@@ -63,111 +67,199 @@ app.get("/uv/service/:url", async (req, res) => {
     });
 
     if (!isAllowed) {
-      return res.status(403).send("Domain not approved");
+      return res.status(403).json({ error: "Domain not approved" });
     }
 
+    // Fetch the resource
     const response = await fetch(targetUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+        'Referer': targetUrl,
+        'Origin': `https://${url.hostname}`
+      },
+      redirect: 'follow'
     });
 
     if (!response.ok) {
-      return res.status(response.status).send("Failed to load game");
+      return res.status(response.status).json({ error: `Failed to load: ${response.statusText}` });
     }
 
     const contentType = response.headers.get("content-type") || "";
-    let content = await response.text();
+    
+    // Set CORS headers
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('X-Frame-Options', 'ALLOWALL');
+    res.header('Content-Security-Policy', "default-src *; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline';");
 
-    // Inject Ultraviolet client
+    // Handle different content types
     if (contentType.includes("text/html")) {
-      content = injectUltravioletClient(content, targetUrl);
-    }
-
-    res.set("Content-Type", contentType);
-    res.send(content);
-
-  } catch (error) {
-    console.error("Proxy error:", error);
-    res.status(500).send("Proxy error");
-  }
-});
-
-// Legacy proxy endpoint for backward compatibility
-app.get("/proxy", async (req, res) => {
-  try {
-    const target = req.query.url;
-
-    if (!target) {
-      return res.status(400).send("Missing URL");
-    }
-
-    const url = new URL(target);
-    const isAllowed = allowedDomains.some(domain => {
-      return url.hostname === domain || url.hostname.endsWith("." + domain);
-    });
-
-    if (!isAllowed) {
-      return res.status(403).send("Domain not approved");
-    }
-
-    const response = await fetch(target, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
-
-    if (!response.ok) {
-      return res.status(response.status).send("Failed to load game");
-    }
-
-    const contentType = response.headers.get("content-type") || "";
-    let content = await response.text();
-
-    if (contentType.includes("text/html")) {
-      content = injectUltravioletClient(content, target);
-    }
-
-    res.set("Content-Type", contentType);
-    res.send(content);
-
-  } catch (error) {
-    console.error("Proxy error:", error);
-    res.status(500).send("Proxy request failed");
-  }
-});
-
-// Ultraviolet client injection
-function injectUltravioletClient(html, pageUrl) {
-  const ultravioletScript = `
-    <script src="https://cdn.jsdelivr.net/gh/titaniumnetwork-dev/Ultraviolet@0.3.0/uv.bundle.js"></script>
-    <script>
-      Ultraviolet.init();
+      let html = await response.text();
       
-      // Proxy all fetch requests
+      // Rewrite URLs in HTML
+      html = rewriteHtmlUrls(html, url.origin, targetUrl);
+      
+      // Inject proxy helper script
+      html = injectProxyScript(html, url.origin);
+      
+      res.set("Content-Type", "text/html; charset=utf-8");
+      res.send(html);
+    } else if (contentType.includes("application/javascript") || contentType.includes("text/javascript")) {
+      let js = await response.text();
+      
+      // Rewrite fetch/XHR calls in JS
+      js = rewriteJavaScript(js, url.origin);
+      
+      res.set("Content-Type", "application/javascript; charset=utf-8");
+      res.send(js);
+    } else if (contentType.includes("text/css")) {
+      let css = await response.text();
+      
+      // Rewrite URLs in CSS
+      css = rewriteCssUrls(css, url.origin);
+      
+      res.set("Content-Type", "text/css; charset=utf-8");
+      res.send(css);
+    } else if (contentType.includes("application/json")) {
+      const json = await response.json();
+      res.json(json);
+    } else {
+      // For images, fonts, and other binary data
+      const buffer = await response.buffer();
+      res.set("Content-Type", contentType);
+      res.send(buffer);
+    }
+
+  } catch (error) {
+    console.error("Proxy error:", error);
+    res.status(500).json({ error: "Proxy request failed", details: error.message });
+  }
+});
+
+// Rewrite HTML URLs
+function rewriteHtmlUrls(html, origin, targetUrl) {
+  const $ = cheerio.load(html, { decodeEntities: false });
+
+  // Rewrite script sources
+  $('script[src]').each((i, elem) => {
+    let src = $(elem).attr('src');
+    if (src && !src.startsWith('http') && !src.startsWith('data:')) {
+      src = new URL(src, targetUrl).href;
+      $(elem).attr('src', `/proxy?url=${encodeURIComponent(src)}`);
+    } else if (src && src.startsWith('http')) {
+      $(elem).attr('src', `/proxy?url=${encodeURIComponent(src)}`);
+    }
+  });
+
+  // Rewrite link hrefs (stylesheets, etc)
+  $('link[href]').each((i, elem) => {
+    let href = $(elem).attr('href');
+    if (href && !href.startsWith('http') && !href.startsWith('data:')) {
+      href = new URL(href, targetUrl).href;
+      $(elem).attr('href', `/proxy?url=${encodeURIComponent(href)}`);
+    } else if (href && href.startsWith('http')) {
+      $(elem).attr('href', `/proxy?url=${encodeURIComponent(href)}`);
+    }
+  });
+
+  // Rewrite image sources
+  $('img[src]').each((i, elem) => {
+    let src = $(elem).attr('src');
+    if (src && !src.startsWith('data:')) {
+      if (!src.startsWith('http')) {
+        src = new URL(src, targetUrl).href;
+      }
+      $(elem).attr('src', `/proxy?url=${encodeURIComponent(src)}`);
+    }
+  });
+
+  // Rewrite iframe sources
+  $('iframe[src]').each((i, elem) => {
+    let src = $(elem).attr('src');
+    if (src && !src.startsWith('data:')) {
+      if (!src.startsWith('http')) {
+        src = new URL(src, targetUrl).href;
+      }
+      $(elem).attr('src', `/proxy?url=${encodeURIComponent(src)}`);
+    }
+  });
+
+  return $.html();
+}
+
+// Rewrite CSS URLs
+function rewriteCssUrls(css, origin) {
+  return css.replace(/url\(['"]?(?!data:)([^'")\s]+)['"]?\)/g, (match, url) => {
+    if (!url.startsWith('http')) {
+      url = new URL(url, origin).href;
+    }
+    return `url('${url}')`;
+  });
+}
+
+// Rewrite JavaScript
+function rewriteJavaScript(js, origin) {
+  // This is a basic approach; a full implementation would need proper JS parsing
+  return js
+    .replace(/fetch\s*\(\s*['"`]/g, (match) => {
+      return match.replace(/(['"`])/g, (q) => q + `/proxy?url=${encodeURIComponent(`);
+    });
+}
+
+// Inject proxy helper script
+function injectProxyScript(html, origin) {
+  const script = `
+    <script>
+      // Intercept fetch requests
       const originalFetch = window.fetch;
       window.fetch = function(...args) {
-        args[0] = Ultraviolet.encodeUrl(args[0]);
+        let url = args[0];
+        if (typeof url === 'string' && !url.startsWith('/proxy') && !url.startsWith('data:') && !url.startsWith('blob:')) {
+          if (!url.startsWith('http')) {
+            url = new URL(url, window.location.origin).href;
+          }
+          args[0] = '/proxy?url=' + encodeURIComponent(url);
+        }
         return originalFetch.apply(this, args);
       };
-      
-      // Proxy XHR requests
-      const xhr = XMLHttpRequest.prototype;
-      const originalOpen = xhr.open;
-      xhr.open = function(method, url, ...rest) {
-        url = Ultraviolet.encodeUrl(url);
+
+      // Intercept XMLHttpRequest
+      const originalOpen = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+        if (typeof url === 'string' && !url.startsWith('/proxy') && !url.startsWith('data:') && !url.startsWith('blob:')) {
+          if (!url.startsWith('http')) {
+            url = new URL(url, window.location.origin).href;
+          }
+          url = '/proxy?url=' + encodeURIComponent(url);
+        }
         return originalOpen.apply(this, [method, url, ...rest]);
       };
+
+      // Fix relative URLs in WebSocket
+      const originalWebSocket = window.WebSocket;
+      window.WebSocket = function(url, ...rest) {
+        if (!url.startsWith('ws')) {
+          url = 'ws' + (window.location.protocol === 'https:' ? 's' : '') + '://' + window.location.host + '/proxy?url=' + encodeURIComponent(url);
+        }
+        return new originalWebSocket(url, ...rest);
+      };
+
+      // Override base tag if it exists
+      const baseTag = document.querySelector('base');
+      if (baseTag) {
+        baseTag.href = window.location.href;
+      }
     </script>
   `;
-
-  // Inject before closing body tag
-  if (html.includes("</body>")) {
-    return html.replace("</body>", ultravioletScript + "</body>");
-  }
   
-  // If no body tag, append to end
-  return html + ultravioletScript;
+  if (html.includes('</head>')) {
+    return html.replace('</head>', script + '</head>');
+  } else if (html.includes('</body>')) {
+    return html.replace('</body>', script + '</body>');
+  }
+  return html + script;
 }
 
 // Serve main index file
@@ -177,10 +269,11 @@ app.get("/", (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).send("Not found");
+  res.status(404).json({ error: "Not found" });
 });
 
 createServer(app).listen(PORT, () => {
   console.log(`🎮 THE VAULT running on http://localhost:${PORT}`);
-  console.log(`Password: bannana13!`);
+  console.log(`📝 Password: bannana13!`);
+  console.log(`✅ Full CORS proxy with content rewriting enabled`);
 });
