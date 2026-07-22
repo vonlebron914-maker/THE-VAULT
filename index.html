@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -8,9 +10,13 @@
 
 <link rel="stylesheet" href="styles.css">
 
+<meta http-equiv="Permissions-Policy" content="fullscreen=*, gamepad=*, autoplay=*">
+
 </head>
 
+
 <body>
+
 
 <!-- LOGIN -->
 
@@ -18,9 +24,10 @@
 
   <div class="login-box">
 
-    <h1>THE <span>VAULT</span></h1>
+    <h1>
+      THE <span>VAULT</span>
+    </h1>
 
-    
 
     <input
       id="password"
@@ -29,128 +36,318 @@
       onkeydown="if(event.key === 'Enter') login()"
     >
 
+
     <button onclick="login()">
       Enter
     </button>
+
 
     <div id="error">
       Incorrect password
     </div>
 
+
   </div>
 
 </div>
+
+
 
 
 <!-- MAIN SITE -->
 
 <div id="site">
 
-  <header>
 
-    <div class="logo">
-      THE <span>VAULT</span>
+<header>
+
+
+  <div class="logo">
+    THE <span>VAULT</span>
+  </div>
+
+
+  <div class="header-right">
+
+    <div class="status">
+      Status:
+      <span>
+        Online
+      </span>
     </div>
 
-    <div class="header-right">
-      <div class="status">
-        Status: <span>Online</span>
-      </div>
-      <button class="logout-btn" onclick="logout()">Logout</button>
+
+    <button
+      class="logout-btn"
+      onclick="logout()"
+    >
+      Logout
+    </button>
+
+
+  </div>
+
+
+</header>
+
+
+
+
+<main class="container">
+
+
+  <div class="intro">
+
+
+    <h2>
+      🎮 Game Collection
+    </h2>
+
+
+    <p>
+      Select a game to launch. Over 100+ games available with custom proxy support.
+    </p>
+
+
+  </div>
+
+
+
+
+
+  <div class="filters">
+
+
+    <div class="search">
+
+
+      <input
+        id="search"
+        type="text"
+        placeholder="🔍 Search games..."
+        oninput="searchGames()"
+      >
+
+
     </div>
 
-  </header>
 
 
-  <main class="container">
+    <div class="category-filter">
 
-    <div class="intro">
 
-      <h2>🎮 Game Collection</h2>
+      <select
+        id="category"
+        onchange="filterByCategory()"
+      >
 
-      <p>
-        Select a game to launch. Over 100+ games available with full proxy support.
-      </p>
+
+        <option value="all">
+          All Categories
+        </option>
+
+
+        <option value="action">
+          Action
+        </option>
+
+
+        <option value="puzzle">
+          Puzzle
+        </option>
+
+
+        <option value="strategy">
+          Strategy
+        </option>
+
+
+        <option value="sports">
+          Sports
+        </option>
+
+
+        <option value="casual">
+          Casual
+        </option>
+
+
+        <option value="multiplayer">
+          Multiplayer
+        </option>
+
+
+        <option value="retro">
+          Retro
+        </option>
+
+
+      </select>
+
 
     </div>
 
-    <div class="filters">
-      <div class="search">
-        <input
-          id="search"
-          type="text"
-          placeholder="🔍 Search games..."
-          oninput="searchGames()"
-        >
-      </div>
-      <div class="category-filter">
-        <select id="category" onchange="filterByCategory()">
-          <option value="all">All Categories</option>
-          <option value="action">Action</option>
-          <option value="puzzle">Puzzle</option>
-          <option value="strategy">Strategy</option>
-          <option value="sports">Sports</option>
-          <option value="casual">Casual</option>
-          <option value="multiplayer">Multiplayer</option>
-          <option value="retro">Retro</option>
-        </select>
-      </div>
-    </div>
 
-    <div class="stats">
-      <span id="game-count">Loading games...</span>
-    </div>
+  </div>
 
-    <div
-      class="grid"
-      id="games"
-    ></div>
 
-  </main>
+
+
+
+  <div class="stats">
+
+    <span id="game-count">
+      Loading games...
+    </span>
+
+  </div>
+
+
+
+
+
+  <div
+    class="grid"
+    id="games"
+  ></div>
+
+
+
+
+</main>
+
 
 </div>
 
 
+
+
+
+
 <!-- PLAYER -->
+
 
 <div id="player">
 
+
   <div class="player-header">
 
+
+
     <div class="player-info">
-      <div class="player-title" id="player-title">Game</div>
-      <span class="player-category" id="player-category"></span>
+
+
+      <div
+        class="player-title"
+        id="player-title"
+      >
+        Game
+      </div>
+
+
+
+      <span
+        class="player-category"
+        id="player-category"
+      ></span>
+
+
     </div>
 
+
+
+
+
     <div class="player-controls">
-      <button class="fullscreen-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+
+
+      <button
+        class="fullscreen-btn"
+        onclick="toggleFullscreen()"
+      >
+        ⛶ Fullscreen
+      </button>
+
+
+
+
       <button
         class="close"
         onclick="closeGame()"
       >
         ✕ Close
       </button>
+
+
     </div>
+
+
 
   </div>
 
+
+
+
+
+
   <div id="iframe-container">
+
+
     <iframe
       id="game-frame"
       allowfullscreen
-      sandbox="allow-same-origin allow-scripts allow-popups allow-presentation"
+      allow="
+        fullscreen;
+        autoplay;
+        gamepad;
+        microphone;
+        camera;
+        clipboard-read;
+        clipboard-write
+      "
     ></iframe>
+
+
+
   </div>
 
+
+
+
 </div>
 
+
+
+
+
+
+
 <!-- LOADING INDICATOR -->
-<div id="loading" class="loading-indicator">
+
+
+<div
+  id="loading"
+  class="loading-indicator"
+>
+
+
   <div class="spinner"></div>
-  <p>Loading game...</p>
+
+
+  <p>
+    Loading game...
+  </p>
+
+
 </div>
+
+
+
+
 
 <script src="script.js"></script>
 
+
 </body>
+
 </html>
