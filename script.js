@@ -1,43 +1,32 @@
 const games = [
-  // ACTION GAMES
-  { name: "Shell Shockers", url: "https://shellshockers.io", category: "action", tags: ["multiplayer", "shooter"] },
-  { name: "Krunker", url: "https://krunker.io", category: "action", tags: ["multiplayer", "shooter", "fps"] },
-  { name: "Slope", url: "https://slope-game.com", category: "action", tags: ["endless", "arcade"] },
-  { name: "Tunnel Rush", url: "https://tunnelrushgame.com", category: "action", tags: ["endless", "arcade"] },
-  { name: "Madalin Stunt Cars", url: "https://madalinstuntcars2.com", category: "action", tags: ["racing", "stunts"] },
-  { name: "Drift Hunters", url: "https://drifthunters.io", category: "action", tags: ["racing", "drifting"] },
-  { name: "1v1.LOL", url: "https://1v1.lol", category: "action", tags: ["multiplayer", "shooter", "building"] },
-  { name: "Moto X3M", url: "https://motox3m.io", category: "action", tags: ["racing", "bikes", "stunts"] },
+  { name:"Shell Shockers", url:"https://shellshockers.io", category:"action", tags:["multiplayer","shooter"] },
+  { name:"Krunker", url:"https://krunker.io", category:"action", tags:["multiplayer","shooter","fps"] },
+  { name:"Slope", url:"https://slope-game.com", category:"action", tags:["endless","arcade"] },
+  { name:"Tunnel Rush", url:"https://tunnelrushgame.com", category:"action", tags:["endless","arcade"] },
+  { name:"Madalin Stunt Cars", url:"https://madalinstuntcars2.com", category:"action", tags:["racing","stunts"] },
+  { name:"Drift Hunters", url:"https://drifthunters.io", category:"action", tags:["racing","drifting"] },
+  { name:"1v1.LOL", url:"https://1v1.lol", category:"action", tags:["multiplayer","shooter"] },
+  { name:"Moto X3M", url:"https://motox3m.io", category:"action", tags:["racing","bikes"] },
 
-  // PUZZLE
-  { name: "Geometry Dash", url: "https://geometrydashlite.io", category: "puzzle", tags: ["rhythm", "platformer"] },
-  { name: "Tetris", url: "https://tetris.com/play-tetris", category: "puzzle", tags: ["classic", "blocks"] },
-  { name: "Run 3", url: "https://run3.io", category: "puzzle", tags: ["platformer", "endless"] },
-  { name: "Fireboy & Watergirl", url: "https://fireboy-watergirl.io", category: "puzzle", tags: ["platformer", "coop"] },
-  { name: "Portal Flash", url: "https://portalflash.io", category: "puzzle", tags: ["physics", "platformer"] },
+  { name:"Geometry Dash", url:"https://geometrydashlite.io", category:"puzzle", tags:["rhythm","platformer"] },
+  { name:"Tetris", url:"https://tetris.com/play-tetris", category:"puzzle", tags:["classic"] },
+  { name:"Run 3", url:"https://run3.io", category:"puzzle", tags:["platformer"] },
+  { name:"Fireboy & Watergirl", url:"https://fireboy-watergirl.io", category:"puzzle", tags:["coop"] },
 
-  // STRATEGY
-  { name: "Zombs Royale", url: "https://zombsroyale.io", category: "strategy", tags: ["battle-royale", "multiplayer"] },
-  { name: "Agar.io", url: "https://agar.io", category: "strategy", tags: ["multiplayer", "survival"] },
-  { name: "Slither.io", url: "https://slither.io", category: "strategy", tags: ["multiplayer", "snake"] },
-  { name: "Paper.io", url: "https://paper-io.com", category: "strategy", tags: ["multiplayer", "territorial"] },
-  { name: "Hole.io", url: "https://hole-io.com", category: "strategy", tags: ["multiplayer", "arcade"] },
+  { name:"Zombs Royale", url:"https://zombsroyale.io", category:"strategy", tags:["battle royale"] },
+  { name:"Agar.io", url:"https://agar.io", category:"strategy", tags:["multiplayer"] },
+  { name:"Slither.io", url:"https://slither.io", category:"strategy", tags:["snake"] },
 
-  // CASUAL
-  { name: "Flappy Bird", url: "https://flappybird.io", category: "casual", tags: ["classic", "arcade"] },
-  { name: "Chrome Dino", url: "https://chromedino.com", category: "casual", tags: ["endless", "arcade"] },
-  { name: "Cookie Clicker", url: "https://cookieclicker.ee", category: "casual", tags: ["idle", "clicker"] },
-  { name: "Snake", url: "https://playsnake.org", category: "casual", tags: ["classic", "arcade"] },
-  { name: "Crossy Road", url: "https://crossyroadgame.com", category: "casual", tags: ["platformer", "arcade"] },
+  { name:"Flappy Bird", url:"https://flappybird.io", category:"casual", tags:["arcade"] },
+  { name:"Chrome Dino", url:"https://chromedino.com", category:"casual", tags:["endless"] },
+  { name:"Cookie Clicker", url:"https://cookieclicker.ee", category:"casual", tags:["idle"] },
 
-  // SPORTS
-  { name: "Basketball Legends", url: "https://basketball-legends.io", category: "sports", tags: ["sports", "multiplayer"] },
-  { name: "Penalty Kicks", url: "https://penalty-kicks.io", category: "sports", tags: ["sports", "soccer"] },
+  { name:"Basketball Legends", url:"https://basketball-legends.io", category:"sports", tags:["sports"] },
+  { name:"Penalty Kicks", url:"https://penalty-kicks.io", category:"sports", tags:["soccer"] },
 
-  // MORE
-  { name: "Chess", url: "https://chess.io", category: "strategy", tags: ["board", "classic"] },
-  { name: "Checkers", url: "https://checkers.io", category: "strategy", tags: ["board", "classic"] },
-  { name: "2048", url: "https://2048game.io", category: "puzzle", tags: ["numbers", "puzzle"] }
+  { name:"Chess", url:"https://chess.io", category:"strategy", tags:["board"] },
+  { name:"Checkers", url:"https://checkers.io", category:"strategy", tags:["board"] },
+  { name:"2048", url:"https://2048game.io", category:"puzzle", tags:["numbers"] }
 ];
 
 
@@ -45,161 +34,126 @@ let allGames = [...games];
 let currentCategory = "all";
 
 
-// LOGIN
-function login() {
 
-  const password =
+function login(){
+
+    const password =
     document.getElementById("password").value;
 
 
-  if (password === "bannana13!") {
+    if(password === "bannana13!"){
 
-    document.getElementById("login-screen").style.display = "none";
+        document.getElementById("login-screen").style.display="none";
+        document.getElementById("site").style.display="block";
 
-    document.getElementById("site").style.display = "block";
+        buildGames(allGames);
 
-    buildGames(allGames);
+    }
+    else{
 
-  } else {
+        const error =
+        document.getElementById("error");
 
-    const error =
-      document.getElementById("error");
+        error.style.display="block";
 
-    error.style.display = "block";
+        setTimeout(()=>{
+            error.style.display="none";
+        },3000);
 
-
-    setTimeout(() => {
-      error.style.display = "none";
-    }, 3000);
-
-  }
-  // LOGOUT
-function logout() {
-
-  document.getElementById("login-screen").style.display = "flex";
-  document.getElementById("site").style.display = "none";
-  document.getElementById("player").style.display = "none";
-
-  document.getElementById("password").value = "";
+    }
 
 }
 
 
 
-// BUILD GAME CARDS
-function buildGames(list) {
+function logout(){
 
-  const container =
+    document.getElementById("login-screen").style.display="flex";
+    document.getElementById("site").style.display="none";
+    document.getElementById("player").style.display="none";
+
+    document.getElementById("password").value="";
+
+}
+
+
+
+
+function buildGames(list){
+
+    const container =
     document.getElementById("games");
 
 
-  container.innerHTML = "";
+    container.innerHTML="";
 
 
-  document.getElementById("game-count").textContent =
+    document.getElementById("game-count").textContent =
     `${list.length} games available`;
 
 
-  if (list.length === 0) {
-
-    container.innerHTML =
-      `<div style="
-        grid-column:1/-1;
-        text-align:center;
-        color:#aaa;
-        padding:40px;
-      ">
-      No games found
-      </div>`;
-
-    return;
-
-  }
+    list.forEach((game,index)=>{
 
 
-
-  list.forEach((game, index) => {
-
-
-    const card =
-      document.createElement("div");
+        const card =
+        document.createElement("div");
 
 
-    card.className =
-      "game-card";
+        card.className="game-card";
 
 
+        card.innerHTML=`
 
-    const category =
-      game.category.charAt(0).toUpperCase()
-      +
-      game.category.slice(1);
-
-
-
-    card.innerHTML = `
-
-      <div class="game-card-header">
+        <div class="game-card-header">
 
         <div class="game-number">
-          #${String(index + 1).padStart(2,"0")}
+        #${String(index+1).padStart(2,"0")}
         </div>
-
 
         <div class="game-name">
-          ${game.name}
+        ${game.name}
+        </div>
+
+        <span class="game-category">
+        ${game.category}
+        </span>
+
         </div>
 
 
-        <span class="game-category">
-          ${category}
+        <div class="game-card-footer">
+
+        <span style="font-size:11px;color:#888">
+        ${game.tags.join(", ")}
         </span>
-
-      </div>
-
-
-      <div class="game-card-footer">
-
-        <span style="font-size:11px;color:#888;">
-          ${game.tags.join(", ")}
-        </span>
-
 
         <button class="play-btn">
-          PLAY
+        PLAY
         </button>
 
-      </div>
-
-    `;
-
-
-
-    const button =
-      card.querySelector(".play-btn");
-
-
-    button.onclick = (event) => {
-
-      event.stopPropagation();
-
-      playGame(game);
-
-    };
+        </div>
+        `;
 
 
 
-    card.onclick = () => {
+        card.querySelector(".play-btn")
+        .onclick=(e)=>{
 
-      playGame(game);
+            e.stopPropagation();
+            playGame(game);
 
-    };
-
-
-    container.appendChild(card);
+        };
 
 
-  });
+        card.onclick=()=>{
+            playGame(game);
+        };
+
+
+        container.appendChild(card);
+
+
+    });
 
 
 }
@@ -207,101 +161,46 @@ function buildGames(list) {
 
 
 
-// PLAY GAME USING LOADER
-function playGame(game) {
+function playGame(game){
 
 
-  if (!game || !game.url) {
-
-    console.error(
-      "Missing game URL"
-    );
-
-    return;
-
-  }
-
-
-
-  const player =
-    document.getElementById("player");
-
-
-  const iframe =
+    const iframe =
     document.getElementById("game-frame");
 
 
-  const title =
-    document.getElementById("player-title");
+    document.getElementById("player-title")
+    .textContent=game.name;
 
 
-  const category =
-    document.getElementById("player-category");
-
-
-
-  title.textContent =
-    game.name;
-
-
-  category.textContent =
-    game.category.toUpperCase();
+    document.getElementById("player-category")
+    .textContent=game.category.toUpperCase();
 
 
 
-  showLoadingIndicator();
+    showLoadingIndicator();
 
 
 
-  iframe.onload = () => {
-
-    hideLoadingIndicator();
-
-  };
+    iframe.onload=()=>{
+        hideLoadingIndicator();
+    };
 
 
 
-  iframe.onerror = () => {
-
-    console.error(
-      "Loader failed"
-    );
-
-    hideLoadingIndicator();
-
-  };
-
-
-
-  /*
-      IMPORTANT CHANGE
-
-      Before:
-      iframe.src = /proxy?url=
-
-      Now:
-      loader.html handles proxy loading
-  */
-
-
-  iframe.src =
-    "loader.html?url="
-    +
+    iframe.src =
+    "/proxy?url=" +
     encodeURIComponent(game.url);
 
 
 
-  player.style.display =
-    "block";
+    document.getElementById("player")
+    .style.display="block";
 
 
 
-  setTimeout(() => {
-
-    hideLoadingIndicator();
-
-  },8000);
-
+    setTimeout(()=>{
+        hideLoadingIndicator();
+    },10000);
 
 }
 
@@ -309,28 +208,17 @@ function playGame(game) {
 
 
 
-// CLOSE GAME
-function closeGame() {
+function closeGame(){
 
-
-  const iframe =
+    const iframe =
     document.getElementById("game-frame");
 
 
-  const player =
-    document.getElementById("player");
+    iframe.src="about:blank";
 
 
-
-  iframe.src =
-    "about:blank";
-
-
-  player.style.display =
-    "none";
-
-
-  hideLoadingIndicator();
+    document.getElementById("player")
+    .style.display="none";
 
 
 }
@@ -338,183 +226,65 @@ function closeGame() {
 
 
 
-// FULLSCREEN
-function toggleFullscreen() {
+function toggleFullscreen(){
 
-
-  const iframe =
+    const iframe =
     document.getElementById("game-frame");
 
 
-  const container =
-    document.getElementById("iframe-container");
+    if(document.fullscreenElement){
 
+        document.exitFullscreen();
 
-  const player =
-    document.getElementById("player");
+    }
+    else{
 
+        iframe.requestFullscreen();
 
-
-  if (
-    iframe.classList.contains("fullscreen")
-  ) {
-
-
-    iframe.classList.remove(
-      "fullscreen"
-    );
-
-
-    player.style.position =
-      "fixed";
-
-
-    container.style.height =
-      "calc(100vh - 70px)";
-
-
-
-  } else {
-
-
-    iframe.classList.add(
-      "fullscreen"
-    );
-
-
-    player.style.position =
-      "fixed";
-
-
-    player.style.inset =
-      "0";
-
-
-  }
-
+    }
 
 }
-  
-// SEARCH GAMES
-function searchGames() {
 
-  const query =
+
+
+
+
+function searchGames(){
+
+    const query =
     document.getElementById("search")
-      .value
-      .toLowerCase();
+    .value
+    .toLowerCase();
 
 
-  let filtered =
-    allGames.filter((game) => {
+
+    let filtered =
+    allGames.filter(game=>{
 
 
-      const nameMatch =
-        game.name
-          .toLowerCase()
-          .includes(query);
-
-
-      const tagMatch =
-        game.tags.some(tag =>
-          tag
-            .toLowerCase()
-            .includes(query)
+        return (
+            game.name.toLowerCase().includes(query) ||
+            game.tags.some(tag=>
+                tag.toLowerCase().includes(query)
+            )
         );
-
-
-      return nameMatch || tagMatch;
 
 
     });
 
 
 
-  if (currentCategory !== "all") {
+    if(currentCategory !== "all"){
 
-    filtered =
-      filtered.filter(game =>
-        game.category === currentCategory
-      );
+        filtered =
+        filtered.filter(game=>
+            game.category===currentCategory
+        );
 
-  }
-
-
-
-  buildGames(filtered);
+    }
 
 
-}
-
-
-
-
-// CATEGORY FILTER
-function filterByCategory() {
-
-
-  currentCategory =
-    document.getElementById("category")
-      .value;
-
-
-
-  const query =
-    document.getElementById("search")
-      .value
-      .toLowerCase();
-
-
-
-  let filtered =
-    allGames;
-
-
-
-  if (currentCategory !== "all") {
-
-    filtered =
-      filtered.filter(game =>
-        game.category === currentCategory
-      );
-
-  }
-
-
-
-  if (query) {
-
-    filtered =
-      filtered.filter(game => {
-
-
-        const nameMatch =
-          game.name
-            .toLowerCase()
-            .includes(query);
-
-
-
-        const tagMatch =
-          game.tags.some(tag =>
-            tag
-              .toLowerCase()
-              .includes(query)
-          );
-
-
-
-        return nameMatch || tagMatch;
-
-
-      });
-
-
-  }
-
-
-
-  buildGames(filtered);
-
+    buildGames(filtered);
 
 }
 
@@ -522,11 +292,23 @@ function filterByCategory() {
 
 
 
-// LOADING SCREEN
+function filterByCategory(){
 
-function showLoadingIndicator() {
+    currentCategory =
+    document.getElementById("category").value;
 
-  document
+
+    searchGames();
+
+}
+
+
+
+
+
+function showLoadingIndicator(){
+
+    document
     .getElementById("loading")
     .classList
     .add("show");
@@ -535,9 +317,10 @@ function showLoadingIndicator() {
 
 
 
-function hideLoadingIndicator() {
 
-  document
+function hideLoadingIndicator(){
+
+    document
     .getElementById("loading")
     .classList
     .remove("show");
@@ -548,34 +331,14 @@ function hideLoadingIndicator() {
 
 
 
-// ESCAPE CLOSE
-
 document.addEventListener(
-  "keydown",
-  (event) => {
+"keydown",
+(e)=>{
 
-
-    if (event.key === "Escape") {
-
-
-      const player =
-        document.getElementById("player");
-
-
-
-      if (
-        player.style.display === "block"
-      ) {
+    if(e.key==="Escape"){
 
         closeGame();
 
-      }
-
-
     }
 
-
-  }
-);
-
-}
+});
