@@ -1,935 +1,757 @@
+"use strict";
+
 const express = require("express");
 const path = require("path");
-const { createServer } = require("http");
-const WebSocket = require("ws");
-const { WebSocketServer } = WebSocket;
-const cheerio = require("cheerio");
-const fetch = require("node-fetch");
+const http = require("http");
 const compression = require("compression");
+const fetch = require("node-fetch");
+const { WebSocketServer, WebSocket } = require("ws");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+const PORT =
+    Number(process.env.PORT) || 3000;
+
+
+const allowedDomains = new Set([
+
+    "shellshockers.io",
+    "krunker.io",
+    "slope-game.com",
+    "tunnelrushgame.com",
+    "geometrydashlite.io",
+    "flappybird.io",
+    "chromedino.com",
+    "cookieclicker.ee",
+    "drifthunters.io",
+    "madalinstuntcars2.com",
+    "1v1.lol",
+    "slither.io",
+    "agar.io",
+    "zombsroyale.io",
+    "tetris.com",
+    "run3.io",
+    "motox3m.io",
+    "fireboy-watergirl.io",
+    "basketball-legends.io",
+    "2048game.io"
+
+]);
+
 
 app.use(compression());
 
-app.use(express.static(__dirname, {
-  extensions: ["html"]
+
+app.use(express.json({
+    limit: "25mb"
 }));
 
-app.use(express.json({ limit: "100mb" }));
-app.use(express.urlencoded({ extended: true, limit: "100mb" }));
-app.use(express.raw({ limit: "100mb", type: "*/*" }));
 
-const allowedDomains = [
-  "shellshockers.io",
-  "krunker.io",
-  "slope-game.com",
-  "tunnelrushgame.com",
-  "geometrydashlite.io",
-  "crossyroadgame.com",
-  "flappybird.io",
-  "chromedino.com",
-  "cookieclicker.ee",
-  "bitlifegame.com",
-  "pacman.live",
-  "playsnake.org",
-  "drifthunters.io",
-  "madalinstuntcars2.com",
-  "1v1.lol",
-  "paper-io.com",
-  "hole-io.com",
-  "slither.io",
-  "agar.io",
-  "zombsroyale.io",
-  "tetris.com",
-  "run3.io",
-  "motox3m.io",
-  "fireboy-watergirl.io",
-  "portalflash.io",
-  "basketball-legends.io",
-  "dinorunner.io",
-  "spaceinvaders.io",
-  "2048game.io",
-  "stickman-hook.io"
-];
+app.use(express.urlencoded({
+    extended: true,
+    limit: "25mb"
+}));
 
-function isAllowed(url) {
-  try {
-    const host = new URL(url).hostname;
 
-    return allowedDomains.some(domain =>
-      host === domain ||
-      host.endsWith("." + domain)
+function getTargetURL(value) {
+
+    if (!value) {
+        return null;
+    }
+
+    try {
+
+        const url = new URL(value);
+
+        if (
+            url.protocol !== "http:" &&
+            url.protocol !== "https:"
+        ) {
+
+            return null;
+
+        }
+
+        return url;
+
+    } catch {
+
+        return null;
+
+    }
+
+}
+
+
+function isAllowedURL(url) {
+
+    const hostname =
+        url.hostname.toLowerCase();
+
+    for (const domain of allowedDomains) {
+
+        if (
+            hostname === domain ||
+            hostname.endsWith(`.${domain}`)
+        ) {
+
+            return true;
+
+        }
+
+    }
+
+    return false;
+
+}
+
+
+function resolveURL(value, baseURL) {
+
+    if (!value) {
+        return value;
+    }
+
+    const trimmed =
+        value.trim();
+
+    if (
+        trimmed.startsWith("data:") ||
+        trimmed.startsWith("blob:") ||
+        trimmed.startsWith("javascript:") ||
+        trimmed.startsWith("#")
+    ) {
+
+        return trimmed;
+
+    }
+
+    try {
+
+        return new URL(
+            trimmed,
+            baseURL
+        ).href;
+
+    } catch {
+
+        return trimmed;
+
+    }
+
+}
+
+
+function proxyURL(target) {
+
+    return `/proxy?url=${encodeURIComponent(target)}`;
+
+}
+
+
+function rewriteHTML(html, baseURL) {
+
+    return html.replace(
+
+        /(<(?:script|img|iframe|audio|video|source|input)[^>]+(?:src|data)=["'])([^"']+)(["'])/gi,
+
+        (match, start, value, end) => {
+
+            const absolute =
+                resolveURL(value, baseURL);
+
+            if (
+                !absolute ||
+                absolute.startsWith("data:") ||
+                absolute.startsWith("blob:")
+            ) {
+
+                return match;
+
+            }
+
+            return (
+                start +
+                proxyURL(absolute) +
+                end
+            );
+
+        }
+
+    ).replace(
+
+        /(<link[^>]+href=["'])([^"']+)(["'])/gi,
+
+        (match, start, value, end) => {
+
+            const absolute =
+                resolveURL(value, baseURL);
+
+            if (
+                !absolute ||
+                absolute.startsWith("data:")
+            ) {
+
+                return match;
+
+            }
+
+            return (
+                start +
+                proxyURL(absolute) +
+                end
+            );
+
+        }
+
+    ).replace(
+
+        /(<form[^>]+action=["'])([^"']+)(["'])/gi,
+
+        (match, start, value, end) => {
+
+            const absolute =
+                resolveURL(value, baseURL);
+
+            if (!absolute) {
+                return match;
+            }
+
+            return (
+                start +
+                proxyURL(absolute) +
+                end
+            );
+
+        }
+
     );
 
-  } catch {
-    return false;
-  }
 }
 
 
-function resolveUrl(value, base) {
+function rewriteCSS(css, baseURL) {
 
-  if (!value) return value;
+    return css.replace(
 
-  if (
-    value.startsWith("data:") ||
-    value.startsWith("blob:") ||
-    value.startsWith("javascript:")
-  ) {
-    return value;
-  }
+        /url\(\s*(['"]?)(.*?)\1\s*\)/gi,
 
-  try {
-    return new URL(value, base).href;
-  } catch {
-    return value;
-  }
+        (match, quote, value) => {
+
+            const absolute =
+                resolveURL(value, baseURL);
+
+            if (
+                !absolute ||
+                absolute.startsWith("data:")
+            ) {
+
+                return match;
+
+            }
+
+            return `url("${proxyURL(absolute)}")`;
+
+        }
+
+    );
+
 }
 
 
-
-app.all("/proxy", async (req,res)=>{
-
-  try {
-
-    const target = req.query.url;
-
-    if(!target)
-      return res.status(400).send("Missing URL");
-
-
-    if(!isAllowed(target))
-      return res.status(403).send("Blocked domain");
-
-
-    const url = new URL(target);
-
+function buildHeaders(req, targetURL) {
 
     const headers = {
 
-      "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125 Safari/537.36",
+        "user-agent":
+            req.headers["user-agent"] ||
+            "Mozilla/5.0",
 
-      "Accept":
-      "*/*",
+        "accept":
+            req.headers.accept ||
+            "*/*",
 
-      "Accept-Language":
-      "en-US,en;q=0.9"
+        "accept-language":
+            req.headers["accept-language"] ||
+            "en-US,en;q=0.9"
 
     };
 
 
-    // forward content type when needed
-    if(req.headers["content-type"])
-      headers["content-type"] =
-        req.headers["content-type"];
+    const passThroughHeaders = [
+
+        "content-type",
+        "range",
+        "if-none-match",
+        "if-modified-since"
+
+    ];
 
 
+    for (
+        const header of passThroughHeaders
+    ) {
 
-    let body;
+        if (req.headers[header]) {
 
+            headers[header] =
+                req.headers[header];
 
-    if(req.method !== "GET" &&
-       req.method !== "HEAD") {
-
-      body=req.body;
-
-    }
-
-
-
-    const response = await fetch(
-      target,
-      {
-        method:req.method,
-        headers,
-        body,
-        redirect:"follow"
-      }
-    );
-
-
-
-    const type =
-      response.headers.get("content-type") || "";
-
-
-
-    res.setHeader(
-      "Access-Control-Allow-Origin",
-      "*"
-    );
-
-
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "*"
-    );
-
-
-    res.setHeader(
-      "Cross-Origin-Resource-Policy",
-      "cross-origin"
-    );
-
-
-    /*
-       HTML
-    */
-
-    if(type.includes("text/html")){
-
-
-      let html =
-        await response.text();
-
-
-      html =
-        rewriteHTML(
-          html,
-          target
-        );
-
-
-      res.type("html");
-
-      return res.send(html);
+        }
 
     }
 
 
-
-    /*
-       Javascript
-    */
-
-    if(
-      type.includes("javascript") ||
-      type.includes("ecmascript")
-    ){
-
-      let js =
-        await response.text();
-
-
-      js =
-        rewriteJS(
-          js,
-          target
-        );
-
-
-      res.type("application/javascript");
-
-      return res.send(js);
-
-    }
-
-
-
-    /*
-       CSS
-    */
-
-    if(type.includes("text/css")){
-
-
-      let css =
-        await response.text();
-
-
-      css =
-        rewriteCSS(
-          css,
-          target
-        );
-
-
-      res.type("text/css");
-
-      return res.send(css);
-
-    }
-
-
-
-    /*
-       Everything else:
-       wasm/images/audio/fonts/etc
-    */
-
-    const buffer =
-      await response.buffer();
-
-
-    res.setHeader(
-      "Content-Type",
-      type
-    );
-
-
-    res.send(buffer);
-
-
-  }
-
-  catch(err){
-
-    console.error(
-      "Proxy error:",
-      err
-    );
-
-    res.status(500)
-    .send("Proxy error");
-
-  }
-
-});
-function rewriteHTML(html, baseUrl) {
-
-  const $ = cheerio.load(
-    html,
-    {
-      decodeEntities:false
-    }
-  );
-
-
-  const rewriteAttribute = (selector, attr)=>{
-
-    $(selector).each((i,el)=>{
-
-      const value=$(el).attr(attr);
-
-      if(
-        value &&
-        !value.startsWith("data:") &&
-        !value.startsWith("#") &&
-        !value.startsWith("javascript:")
-      ){
-
-        const absolute =
-          resolveUrl(
-            value,
-            baseUrl
-          );
-
-
-        $(el).attr(
-          attr,
-          "/proxy?url=" +
-          encodeURIComponent(absolute)
-        );
-
-      }
-
-    });
-
-  };
-
-
-
-  rewriteAttribute(
-    "script[src]",
-    "src"
-  );
-
-
-  rewriteAttribute(
-    "link[href]",
-    "href"
-  );
-
-
-  rewriteAttribute(
-    "img[src]",
-    "src"
-  );
-
-
-  rewriteAttribute(
-    "audio[src]",
-    "src"
-  );
-
-
-  rewriteAttribute(
-    "video[src]",
-    "src"
-  );
-
-
-  rewriteAttribute(
-    "source[src]",
-    "src"
-  );
-
-
-  rewriteAttribute(
-    "iframe[src]",
-    "src"
-  );
-
-
-  rewriteAttribute(
-    "object[data]",
-    "data"
-  );
-
-
-
-  $("form[action]").each((i,el)=>{
-
-    const action =
-      $(el).attr("action");
-
-
-    if(action){
-
-      $(el).attr(
-        "action",
-        "/proxy?url=" +
-        encodeURIComponent(
-          resolveUrl(
-            action,
-            baseUrl
-          )
-        )
-      );
-
-    }
-
-  });
-
-
-
-  // inject browser compatibility script
-
-  const inject = `
-
-<script>
-
-window.__VAULT_PROXY__ = "${baseUrl}";
-
-
-(function(){
-
-
-const originalFetch =
-window.fetch;
-
-
-window.fetch=function(input,options){
-
-
- let url =
- typeof input==="string"
- ? input
- : input.url;
-
-
-
- if(
- url &&
- !url.startsWith("/proxy") &&
- !url.startsWith("data:")
- ){
-
-    url =
-    new URL(
-      url,
-      window.__VAULT_PROXY__
-    ).href;
-
-
-    input =
-    "/proxy?url=" +
-    encodeURIComponent(url);
-
- }
-
-
- return originalFetch(
-   input,
-   options
- );
-
-};
-
-
-
-const oldXHR =
-XMLHttpRequest.prototype.open;
-
-
-XMLHttpRequest.prototype.open =
-function(method,url,...args){
-
-
- if(
- url &&
- !url.startsWith("/proxy") &&
- !url.startsWith("data:")
- ){
-
-   url =
-   new URL(
-     url,
-     window.__VAULT_PROXY__
-   ).href;
-
-
-   url =
-   "/proxy?url=" +
-   encodeURIComponent(url);
-
- }
-
-
- return oldXHR.call(
-   this,
-   method,
-   url,
-   ...args
- );
-
-};
-
-
-
-const OldWorker =
-window.Worker;
-
-
-if(OldWorker){
-
- window.Worker =
- function(url,options){
-
-
-   if(
-    !url.startsWith("/proxy")
-   ){
-
-    url =
-    "/proxy?url=" +
-    encodeURIComponent(
-      new URL(
-        url,
-        window.__VAULT_PROXY__
-      ).href
-    );
-
-   }
-
-
-   return new OldWorker(
-    url,
-    options
-   );
-
- };
+    return headers;
 
 }
 
 
+function getRequestBody(req) {
 
-})();
+    if (
+        req.method === "GET" ||
+        req.method === "HEAD"
+    ) {
 
+        return undefined;
 
-</script>
+    }
 
-`;
+    if (!req.body) {
 
+        return undefined;
 
-  if(html.includes("</head>")){
+    }
 
-    html =
-    html.replace(
-      "</head>",
-      inject +
-      "</head>"
-    );
+    if (Buffer.isBuffer(req.body)) {
 
-  }
-  else {
+        return req.body;
 
-    html += inject;
+    }
 
-  }
+    if (typeof req.body === "string") {
 
+        return req.body;
 
+    }
 
-  return $.html();
+    return JSON.stringify(req.body);
 
 }
 
 
+app.options("/proxy", (req, res) => {
 
-
-
-
-
-function rewriteJS(js,baseUrl){
-
-
- // fetch()
-
- js =
- js.replace(
- /fetch\((['"`])(.*?)\1/g,
- (match,q,url)=>{
-
-
-   if(
-    url.startsWith("http") ||
-    url.startsWith("/")
-   ){
-
-    const fixed =
-    resolveUrl(
-      url,
-      baseUrl
+    res.setHeader(
+        "Access-Control-Allow-Origin",
+        "*"
     );
 
-
-    return (
-      "fetch('" +
-      "/proxy?url=" +
-      encodeURIComponent(fixed) +
-      "'"
+    res.setHeader(
+        "Access-Control-Allow-Methods",
+        "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS"
     );
 
-   }
-
-
-   return match;
-
-
- });
-
-
-
-
- // XMLHttpRequest URLs
-
- js =
- js.replace(
- /(open\(['"`][A-Z]+['"`],\s*['"`])(.*?)(['"`])/g,
- (match,start,url,end)=>{
-
-
-   const fixed =
-   resolveUrl(
-     url,
-     baseUrl
-   );
-
-
-   return (
-    start +
-    "/proxy?url=" +
-    encodeURIComponent(fixed) +
-    end
-   );
-
-
- });
-
-
-
-
- return js;
-
-}
-
-
-
-
-
-
-
-function rewriteCSS(css,baseUrl){
-
-
- return css.replace(
-
- /url\((.*?)\)/g,
-
- (match,url)=>{
-
-
-   url =
-   url.replace(
-    /['"]/g,
-    ""
-   );
-
-
-   if(
-    url.startsWith("data:")
-   )
-    return match;
-
-
-
-   return (
-
-    "url(" +
-    "/proxy?url=" +
-    encodeURIComponent(
-      resolveUrl(
-        url,
-        baseUrl
-      )
-    )
-    +
-    ")"
-
-   );
-
-
- }
-
- );
-
-
-}
-const server = createServer(app);
-
-
-
-/*
- WebSocket Proxy
- Supports games that use
- ws:// / wss:// connections
-*/
-
-const wss = new WebSocketServer({
-  server,
-  path:"/ws"
-});
-
-
-wss.on(
-"connection",
-(client,request)=>{
-
-
- try {
-
-
-  const params =
-  new URL(
-    request.url,
-    "http://localhost"
-  );
-
-
-  const target =
-  params.searchParams.get("url");
-
-
-  if(!target){
-
-    client.close();
-    return;
-
-  }
-
-
-
-  const wsTarget =
-  target
-  .replace(
-    /^http/,
-    "ws"
-  );
-
-
-
-  const remote =
-  new WebSocket(
-    wsTarget,
-    {
-      headers:{
-        "User-Agent":
-        "Mozilla/5.0"
-      }
-    }
-  );
-
-
-
-  remote.on(
-  "open",
-  ()=>{
-
-    if(
-      client.readyState === WebSocket.OPEN
-    ){
-
-      client.send(
-        JSON.stringify({
-          type:"connected"
-        })
-      );
-
-    }
-
-  });
-
-
-
-  remote.on(
-  "message",
-  data=>{
-
-    if(
-      client.readyState === WebSocket.OPEN
-    ){
-
-      client.send(data);
-
-    }
-
-  });
-
-
-
-  client.on(
-  "message",
-  data=>{
-
-    if(
-      remote.readyState === WebSocket.OPEN
-    ){
-
-      remote.send(data);
-
-    }
-
-  });
-
-
-
-  remote.on(
-  "close",
-  ()=>{
-
-    client.close();
-
-  });
-
-
-
-  remote.on(
-  "error",
-  err=>{
-
-    console.log(
-      "Remote WS error:",
-      err.message
+    res.setHeader(
+        "Access-Control-Allow-Headers",
+        "*"
     );
 
-    client.close();
-
-  });
-
-
-
- }
-
- catch(err){
-
-  console.log(
-    "WS proxy error:",
-    err.message
-  );
-
-  client.close();
-
- }
-
+    res.status(204).end();
 
 });
 
 
+app.all("/proxy", async (req, res) => {
 
+    try {
+
+        const targetURL =
+            getTargetURL(req.query.url);
+
+
+        if (!targetURL) {
+
+            return res
+                .status(400)
+                .send("Invalid target URL");
+
+        }
+
+
+        if (!isAllowedURL(targetURL)) {
+
+            return res
+                .status(403)
+                .send("Target domain is not allowed");
+
+        }
+
+
+        const response =
+            await fetch(
+
+                targetURL.href,
+
+                {
+
+                    method: req.method,
+
+                    headers:
+                        buildHeaders(
+                            req,
+                            targetURL
+                        ),
+
+                    body:
+                        getRequestBody(req),
+
+                    redirect: "follow",
+
+                    timeout: 30000
+
+                }
+
+            );
+
+
+        const contentType =
+            response.headers.get(
+                "content-type"
+            ) || "application/octet-stream";
+
+
+        res.status(
+            response.status
+        );
+
+
+        res.setHeader(
+            "Content-Type",
+            contentType
+        );
+
+
+        const cacheControl =
+            response.headers.get(
+                "cache-control"
+            );
+
+        if (cacheControl) {
+
+            res.setHeader(
+                "Cache-Control",
+                cacheControl
+            );
+
+        }
+
+
+        res.setHeader(
+            "Access-Control-Allow-Origin",
+            "*"
+        );
+
+
+        if (
+            contentType.includes(
+                "text/html"
+            )
+        ) {
+
+            const html =
+                await response.text();
+
+
+            return res.send(
+
+                rewriteHTML(
+                    html,
+                    targetURL.href
+                )
+
+            );
+
+        }
+
+
+        if (
+            contentType.includes(
+                "text/css"
+            )
+        ) {
+
+            const css =
+                await response.text();
+
+
+            return res.send(
+
+                rewriteCSS(
+                    css,
+                    targetURL.href
+                )
+
+            );
+
+        }
+
+
+        const buffer =
+            await response.buffer();
+
+
+        return res.send(buffer);
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Proxy error:",
+            error.message
+        );
+
+
+        return res
+            .status(502)
+            .send(
+                "Unable to load the requested resource"
+            );
+
+    }
+
+});
 
 
 app.get(
-"/",
-(req,res)=>{
+    "/health",
+    (req, res) => {
 
- res.sendFile(
-  path.join(
-   __dirname,
-   "index.html"
-  )
- );
+        res.json({
 
-});
+            status: "online",
 
+            service: "THE VAULT",
 
+            proxy: "enabled",
 
+            allowedDomains:
+                allowedDomains.size
 
+        });
 
-app.get(
-"/health",
-(req,res)=>{
-
- res.json({
-  status:"online",
-  proxy:"THE VAULT custom proxy"
- });
-
-});
-
-
-
+    }
+);
 
 
 app.use(
-(req,res)=>{
+    express.static(
+        __dirname,
+        {
+            extensions: ["html"]
+        }
+    )
+);
 
- res.status(404).json({
-  error:"Not found"
- });
 
-});
+app.get(
+    "/",
+    (req, res) => {
+
+        res.sendFile(
+            path.join(
+                __dirname,
+                "index.html"
+            )
+        );
+
+    }
+);
 
 
+const server =
+    http.createServer(app);
 
+
+const wss =
+    new WebSocketServer({
+        server,
+        path: "/ws"
+    });
+
+
+wss.on(
+    "connection",
+    (client, request) => {
+
+        let target;
+
+        try {
+
+            const requestURL =
+                new URL(
+                    request.url,
+                    "http://localhost"
+                );
+
+
+            target =
+                getTargetURL(
+                    requestURL.searchParams.get(
+                        "url"
+                    )
+                );
+
+        }
+
+        catch {
+
+            client.close();
+
+            return;
+
+        }
+
+
+        if (
+            !target ||
+            !isAllowedURL(target)
+        ) {
+
+            client.close();
+
+            return;
+
+        }
+
+
+        const remoteURL =
+            target.href.replace(
+                /^http:/i,
+                "ws:"
+            ).replace(
+                /^https:/i,
+                "wss:"
+            );
+
+
+        const remote =
+            new WebSocket(
+                remoteURL
+            );
+
+
+        remote.on(
+            "open",
+            () => {
+
+                if (
+                    client.readyState ===
+                    WebSocket.OPEN
+                ) {
+
+                    client.send(
+                        JSON.stringify({
+                            type: "connected"
+                        })
+                    );
+
+                }
+
+            }
+        );
+
+
+        remote.on(
+            "message",
+            data => {
+
+                if (
+                    client.readyState ===
+                    WebSocket.OPEN
+                ) {
+
+                    client.send(data);
+
+                }
+
+            }
+        );
+
+
+        client.on(
+            "message",
+            data => {
+
+                if (
+                    remote.readyState ===
+                    WebSocket.OPEN
+                ) {
+
+                    remote.send(data);
+
+                }
+
+            }
+        );
+
+
+        remote.on(
+            "close",
+            () => {
+
+                if (
+                    client.readyState ===
+                    WebSocket.OPEN
+                ) {
+
+                    client.close();
+
+                }
+
+            }
+        );
+
+
+        remote.on(
+            "error",
+            error => {
+
+                console.error(
+                    "WebSocket error:",
+                    error.message
+                );
+
+
+                if (
+                    client.readyState ===
+                    WebSocket.OPEN
+                ) {
+
+                    client.close();
+
+                }
+
+            }
+        );
+
+    }
+);
 
 
 server.listen(
-PORT,
-()=>{
+    PORT,
+    () => {
 
- console.log(
- `
-================================
- THE VAULT CUSTOM PROXY v4
-================================
+        console.log(
+            `THE VAULT running on port ${PORT}`
+        );
 
-Running:
-http://localhost:${PORT}
+        console.log(
+            `Allowed domains: ${allowedDomains.size}`
+        );
 
-Features:
-✓ HTML rewriting
-✓ JS rewriting
-✓ CSS rewriting
-✓ WASM support
-✓ WebSocket proxy
-✓ Worker support
-✓ Fetch interception
-✓ XHR interception
-
-================================
- `
- );
-
-});
+    }
+);
