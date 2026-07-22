@@ -1,31 +1,22 @@
 {
   "name": "the-vault",
-  "version": "5.0.0",
-  "description": "THE VAULT custom game proxy",
-
+  "version": "6.0.0",
+  "description": "THE VAULT game collection",
   "main": "server.js",
-
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-
   "dependencies": {
-    "express": "^4.21.2",
-    "ws": "^8.18.0",
-    "node-fetch": "^2.7.0",
-    "cheerio": "^1.0.0",
     "compression": "^1.7.4",
+    "express": "^4.21.2",
     "http-proxy": "^1.18.1",
-    "mime-types": "^2.1.35",
-    "cookie-parser": "^1.4.7",
-    "tough-cookie": "^5.1.2"
+    "node-fetch": "^2.7.0",
+    "ws": "^8.18.0"
   },
-
   "devDependencies": {
     "nodemon": "^3.0.2"
   },
-
   "engines": {
     "node": ">=18"
   }
