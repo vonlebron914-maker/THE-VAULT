@@ -1,14 +1,30 @@
 {
   "name": "the-vault",
   "version": "4.0.0",
-  "description": "THE VAULT - Scramjet Game Portal",
+  "description": "THE VAULT game portal with advanced proxy compatibility layer",
   "main": "server.js",
+
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
+
   "dependencies": {
     "express": "^4.21.2",
-    "@mercuryworkshop/scramjet": "latest",
-    "@tomphttp/bare-server-node": "latest"
+    "cheerio": "^1.0.0",
+    "ws": "^8.18.0",
+    "node-fetch": "^2.7.0",
+    "compression": "^1.7.4",
+    "http-proxy": "^1.18.1",
+    "mime-types": "^2.1.35",
+    "cookie": "^0.7.1"
+  },
+
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+
+  "engines": {
+    "node": ">=18"
   }
 }
