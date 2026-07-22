@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Loading Game...</title>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0a0e27;
+}
+
+#loading {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: white;
+    font-family: Arial, sans-serif;
+    background: #0a0e27;
+    z-index: 10;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #333;
+    border-top-color: #e3263e;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+iframe {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: none;
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="loading">
+    <div class="spinner"></div>
+    <div>Loading game...</div>
+</div>
+
+<iframe id="game"></iframe>
+
+
+<script src="intercept.js"></script>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+
+const url = params.get("url");
+
+const iframe = document.getElementById("game");
+const loading = document.getElementById("loading");
+
+
+if (!url) {
+
+    loading.innerHTML =
+        "No game URL provided";
+
+} else {
+
+    const proxyURL =
+        "/proxy?url=" + encodeURIComponent(url);
+
+
+    iframe.onload = () => {
+
+        loading.style.display = "none";
+        iframe.style.display = "block";
+
+    };
+
+
+    iframe.onerror = () => {
+
+        loading.innerHTML =
+            "Game failed to load";
+
+    };
+
+
+    iframe.src = proxyURL;
+
+}
+
+</script>
+
+</body>
+</html>
